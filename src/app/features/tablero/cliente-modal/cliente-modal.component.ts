@@ -1,10 +1,11 @@
 import { Component, inject, input, output, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
+import { DatePipe } from '@angular/common';
 import { Cliente, TIPOS_PROYECTO, ESTADOS_CLIENTE, DocumentoLink } from '../../../shared/models/cliente.model';
 
 @Component({
   selector: 'app-cliente-modal',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, DatePipe],
   templateUrl: './cliente-modal.component.html',
   styleUrl: './cliente-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

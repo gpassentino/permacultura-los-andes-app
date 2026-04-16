@@ -112,26 +112,25 @@ body {
   }
 }
 
-// Client cards
-.cliente-card {
-  border-left: 4px solid $primary;
-  margin-bottom: 0.75rem;
-  cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+// FAB — on mobile, sit above the bottom nav (4.5rem) + some breathing room
+@media (max-width: 767px) {
+  .fab {
+    bottom: 5.5rem;
   }
 }
 
-// Reminder banners
-.reminder-banner {
-  background: linear-gradient(90deg, #fff3cd, #ffeeba);
-  border-left: 4px solid $warning;
+// CDK drag: prevent text selection on long-press during drag
+.cdk-drag {
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.reminder-banner-danger {
-  background: linear-gradient(90deg, #f8d7da, #f5c6cb);
-  border-left: 4px solid $danger;
+// Prevent body scroll when modal open
+body.modal-open {
+  overflow: hidden;
+}
+
+// Smooth scroll for horizontal kanban tab nav
+html {
+  scroll-behavior: smooth;
 }

@@ -1,116 +1,147 @@
 <!-- ── Error alert ── -->
 @if (error()) {
-  <div class="alert alert-danger alert-dismissible mx-3 mt-2 mb-0" role="alert">
+  <div class="alert alert-danger alert-dismissible mx-3 mt-2 mb-0 py-2" role="alert">
     {{ error() }}
-    <button type="button" class="btn-close" (click)="error.set(null)"></button>
+    <button type="button" class="btn-close" (click)="error.set(null)" aria-label="Cerrar"></button>
   </div>
 }
 
+<!-- ── Loading ── -->
 @if (loading()) {
-  <!-- ── Loading spinner ── -->
   <div class="d-flex justify-content-center align-items-center py-5">
-    <span class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Cargando...</span>
-    </span>
+    <div class="text-center">
+      <span class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando…</span>
+      </span>
+      <p class="mt-2 text-muted small">Cargando clientes…</p>
+    </div>
   </div>
 } @else {
 
 <!-- ── Recordatorios banner ── -->
-@if (recordatoriosPendientes().length > 0) {
-  <div class="reminder-banner d-flex align-items-center flex-wrap gap-2 px-3 py-2">
-    <span class="fw-semibold">⚠️ Recordatorios pendientes:</span>
-    @for (r of recordatoriosPendientes(); track r.id) {
-      <button class="badge bg-warning text-dark border-0"
-              (click)="openModal(r)">
-        {{ r.nombre }} — {{ r.recordatorioMensaje || 'Sin mensaje' }}
+@if (recordatoriosBanner().length > 0) {
+  <div class="recordatorio-banner px-3 py-2 d-flex align-items-center flex-wrap gap-2">
+    <span class="fw-semibold text-dark me-1">🔔 Recordatorios:</span>
+    @for (r of recordatoriosBanner(); track r.id) {
+      <button type="button"
+              class="recordatorio-chip"
+              [class.chip-danger]="recordatorioService.getEstado(r) === 'vencido'"
+              [class.chip-warning]="recordatorioService.getEstado(r) !== 'vencido'"
+              (click)="openModal(r)"
+              [title]="r.recordatorioMensaje || r.nombre">
+        <span class="chip-label">{{ recordatorioService.bannerLabel(r) }}</span>
+        {{ r.nombre }}
+        @if (r.recordatorioMensaje) {
+          <span class="chip-msg">— {{ r.recordatorioMensaje }}</span>
+        }
       </button>
     }
   </div>
 }
 
-<!-- ── Mobile: column tab nav ── -->
-<div class="kanban-nav-tabs d-md-none">
+<!-- ══════════════════════════════════════════════════
+     MOBILE LAYOUT
+     Horizontal tab nav + single column with CDK touch drag
+════════════════════════════════════════════════════ -->
+
+<!-- Mobile: column tab nav -->
+<nav class="kanban-nav-tabs d-md-none" aria-label="Columnas del tablero">
   @for (columna of columnas; track columna) {
-    <button class="nav-pill-tab"
+    <button type="button"
+            class="nav-pill-tab"
             [class.active]="columnaActiva() === columna"
-            (click)="columnaActiva.set(columna)">
+            (click)="columnaActiva.set(columna)"
+            [attr.aria-current]="columnaActiva() === columna ? 'true' : null">
       {{ columna }}
-      <span class="badge rounded-pill ms-1"
-            [class.bg-primary]="columnaActiva() === columna"
-            [class.bg-secondary]="columnaActiva() !== columna">
+      <span class="tab-count badge rounded-pill ms-1">
         {{ (clientesPorColumna().get(columna) ?? []).length }}
       </span>
     </button>
   }
-</div>
+</nav>
 
-<!-- ── Mobile: single column cards ── -->
-<div class="d-md-none p-3">
+<!-- Mobile: cards — CDK drop list enables long-press drag across columns -->
+<div class="d-md-none mobile-column-body p-3"
+     cdkDropList
+     [cdkDropListData]="columnaActiva()"
+     (cdkDropListDropped)="onDrop($event)">
+
   @for (cliente of clientesPorColumna().get(columnaActiva()) ?? []; track cliente.id) {
-    <div (click)="openModal(cliente)">
+    <div cdkDrag
+         [cdkDragData]="cliente"
+         [cdkDragStartDelay]="touchDelay"
+         (click)="openModal(cliente)">
       <app-cliente-card [cliente]="cliente" />
+      <div *cdkDragPlaceholder class="drag-placeholder mb-2"></div>
     </div>
   }
+
   @if ((clientesPorColumna().get(columnaActiva()) ?? []).length === 0) {
-    <div class="text-center text-muted py-5">
-      <p class="mb-0">No hay clientes en esta columna</p>
+    <div class="empty-column text-center text-muted py-5">
+      <div class="empty-icon">🌱</div>
+      <p class="mb-0 small">Sin clientes en esta etapa</p>
     </div>
   }
 </div>
 
-<!-- ── Desktop: full Kanban board ── -->
-<div class="kanban-board d-none d-md-block" cdkDropListGroup>
-  <div class="d-flex gap-3 p-3 h-100">
-    @for (columna of columnas; track columna) {
-      <div class="kanban-column d-flex flex-column">
+<!-- ══════════════════════════════════════════════════
+     DESKTOP LAYOUT
+     Full Kanban board with all columns side by side
+════════════════════════════════════════════════════ -->
 
-        <!-- Column header -->
-        <div class="kanban-column-header d-flex justify-content-between align-items-center mb-2 px-1">
-          <span class="fw-semibold small text-dark">{{ columna }}</span>
-          <span class="badge bg-secondary rounded-pill">
-            {{ (clientesPorColumna().get(columna) ?? []).length }}
-          </span>
-        </div>
+<div class="kanban-board d-none d-md-flex" cdkDropListGroup>
+  @for (columna of columnas; track columna) {
+    <div class="kanban-column d-flex flex-column">
 
-        <!-- Drop zone -->
-        <div class="kanban-column-body flex-grow-1"
-             cdkDropList
-             [cdkDropListData]="columna"
-             (cdkDropListDropped)="onDrop($event)">
-
-          @for (cliente of clientesPorColumna().get(columna) ?? []; track cliente.id) {
-            <div cdkDrag [cdkDragData]="cliente" (click)="openModal(cliente)">
-              <app-cliente-card [cliente]="cliente" />
-              <div *cdkDragPlaceholder
-                   class="drag-placeholder card mb-2">
-              </div>
-            </div>
-          }
-
-          @if ((clientesPorColumna().get(columna) ?? []).length === 0) {
-            <div class="text-center text-muted py-4 small drop-hint">
-              Arrastra aquí
-            </div>
-          }
-
-        </div>
+      <!-- Column header -->
+      <div class="kanban-column-header d-flex justify-content-between align-items-center mb-2 px-1">
+        <span class="fw-semibold small text-dark">{{ columna }}</span>
+        <span class="badge bg-secondary rounded-pill">
+          {{ (clientesPorColumna().get(columna) ?? []).length }}
+        </span>
       </div>
-    }
-  </div>
+
+      <!-- Drop zone -->
+      <div class="kanban-column-body flex-grow-1"
+           cdkDropList
+           [cdkDropListData]="columna"
+           (cdkDropListDropped)="onDrop($event)">
+
+        @for (cliente of clientesPorColumna().get(columna) ?? []; track cliente.id) {
+          <div cdkDrag [cdkDragData]="cliente" (click)="openModal(cliente)">
+            <app-cliente-card [cliente]="cliente" />
+            <div *cdkDragPlaceholder class="drag-placeholder mb-2"></div>
+          </div>
+        }
+
+        @if ((clientesPorColumna().get(columna) ?? []).length === 0) {
+          <div class="drop-hint text-center text-muted small py-4">
+            <div class="empty-icon" style="font-size: 1.4rem;">🌱</div>
+            Arrastra aquí
+          </div>
+        }
+
+      </div>
+    </div>
+  }
 </div>
 
 <!-- ── FAB: new client ── -->
-<button class="fab" (click)="openModal()" aria-label="Nuevo cliente"
+<button class="fab" type="button"
+        (click)="openModal()"
+        aria-label="Nuevo cliente"
         title="Nuevo cliente">
   +
 </button>
 
-}
+}<!-- end @else loading -->
 
 <!-- ── Modal overlay ── -->
 @if (showModal()) {
   <div class="modal show d-block modal-overlay"
        tabindex="-1"
+       role="dialog"
+       aria-modal="true"
        (click)="onBackdropClick($event)">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
       <div class="modal-content">
@@ -123,5 +154,5 @@
       </div>
     </div>
   </div>
-  <div class="modal-backdrop show" style="z-index: 1049;"></div>
+  <div class="modal-backdrop show modal-backdrop-custom"></div>
 }

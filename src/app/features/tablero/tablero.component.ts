@@ -5,8 +5,9 @@ import {
   CdkDragPlaceholder, CdkDropListGroup
 } from '@angular/cdk/drag-drop';
 import { ClienteService } from '../../services/cliente.service';
+import { RecordatorioService } from '../../services/recordatorio.service';
 import { Cliente, EstadoCliente, ESTADOS_CLIENTE } from '../../shared/models/cliente.model';
-import { ClienteCardComponent } from './cliente-card/cliente-card.component';
+import { ClienteCardComponent } from '../../shared/components/cliente-card/cliente-card.component';
 import { ClienteModalComponent } from './cliente-modal/cliente-modal.component';
 
 @Component({
@@ -20,31 +21,33 @@ import { ClienteModalComponent } from './cliente-modal/cliente-modal.component';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TableroComponent {
-  private clienteService = inject(ClienteService);
+  private clienteService      = inject(ClienteService);
+  readonly recordatorioService = inject(RecordatorioService);
 
   readonly columnas = ESTADOS_CLIENTE;
-  private readonly clientesRaw = toSignal(this.clienteService.getClientes());
-  readonly loading = computed(() => this.clientesRaw() === undefined);
-  readonly clientes = computed(() => this.clientesRaw() ?? []);
-  readonly columnaActiva = signal<EstadoCliente>('Contacto Inicial');
-  readonly selectedCliente = signal<Cliente | null>(null);
-  readonly showModal = signal(false);
-  readonly error = signal<string | null>(null);
 
-  readonly recordatoriosPendientes = computed(() => {
-    const hoy = new Date();
-    hoy.setHours(23, 59, 59, 999);
-    return this.clientes().filter(c => c.recordatorioFecha && c.recordatorioFecha <= hoy);
-  });
+  private readonly clientesRaw = toSignal(this.clienteService.getClientes());
+
+  readonly loading  = computed(() => this.clientesRaw() === undefined);
+  readonly clientes = computed(() => this.clientesRaw() ?? []);
+
+  readonly columnaActiva   = signal<EstadoCliente>('Contacto Inicial');
+  readonly selectedCliente = signal<Cliente | null>(null);
+  readonly showModal       = signal(false);
+  readonly error           = signal<string | null>(null);
+
+  // CDK touch drag: long-press delay before drag starts (ms)
+  readonly touchDelay = 500;
+
+  /** Clients with reminders: overdue, today, or tomorrow — shown in top banner */
+  readonly recordatoriosBanner = computed(() =>
+    this.recordatorioService.getClientesBanner(this.clientes())
+  );
 
   readonly clientesPorColumna = computed(() => {
     const map = new Map<EstadoCliente, Cliente[]>();
-    for (const col of ESTADOS_CLIENTE) {
-      map.set(col, []);
-    }
-    for (const c of this.clientes()) {
-      map.get(c.estado)?.push(c);
-    }
+    for (const col of ESTADOS_CLIENTE) map.set(col, []);
+    for (const c of this.clientes()) map.get(c.estado)?.push(c);
     return map;
   });
 

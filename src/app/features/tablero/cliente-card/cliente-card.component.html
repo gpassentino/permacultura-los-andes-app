@@ -1,0 +1,60 @@
+<div class="cliente-card card mb-2"
+     [class.border-danger]="isRecordatorioVencido()"
+     [class.border-warning]="!isRecordatorioVencido() && isRecordatorioPronto()">
+  <div class="card-body py-2 px-3">
+
+    <!-- Name + reminder badge -->
+    <div class="d-flex justify-content-between align-items-start mb-1">
+      <span class="fw-semibold text-dark lh-sm">{{ cliente().nombre }}</span>
+      <span class="ms-2 flex-shrink-0">
+        @if (isRecordatorioVencido()) {
+          <span class="badge bg-danger"
+                [title]="cliente().recordatorioMensaje">⚠️</span>
+        } @else if (isRecordatorioPronto()) {
+          <span class="badge bg-warning text-dark"
+                [title]="cliente().recordatorioMensaje">🔔</span>
+        }
+      </span>
+    </div>
+
+    <!-- Tipo proyecto -->
+    @if (cliente().tipoProyecto) {
+      <div class="mb-1">
+        <span class="badge" [class]="tipoBadgeClass()" style="font-size: 0.7rem;">
+          {{ cliente().tipoProyecto }}
+        </span>
+      </div>
+    }
+
+    <!-- Municipio -->
+    @if (cliente().municipio) {
+      <div class="text-muted" style="font-size: 0.78rem;">
+        📍 {{ cliente().municipio }}
+      </div>
+    }
+
+    <!-- Days since contact + WhatsApp -->
+    <div class="d-flex justify-content-between align-items-center mt-1">
+      @if (diasDesdeContacto() !== null) {
+        <span class="small"
+              [class.text-danger]="diasDesdeContacto()! > 14"
+              [class.text-warning]="diasDesdeContacto()! > 7 && diasDesdeContacto()! <= 14"
+              [class.text-muted]="diasDesdeContacto()! <= 7">
+          {{ diasDesdeContacto() }}d sin contacto
+        </span>
+      } @else {
+        <span></span>
+      }
+      @if (cliente().whatsapp) {
+        <a [href]="whatsappUrl()"
+           target="_blank"
+           class="text-success text-decoration-none"
+           style="font-size: 0.85rem;"
+           (click)="$event.stopPropagation()">
+          💬
+        </a>
+      }
+    </div>
+
+  </div>
+</div>

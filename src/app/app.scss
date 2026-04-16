@@ -1,0 +1,20 @@
+.main-with-bottom-nav {
+  // Reserve space for the fixed bottom nav on mobile
+  padding-bottom: 4.5rem;
+
+  @media (min-width: 768px) {
+    padding-bottom: 0;
+  }
+}
+
+.bottom-nav-item {
+  color: #6c757d;
+  font-size: 0.7rem;
+  min-width: 64px;
+  border: none;
+  background: none;
+
+  &.active {
+    color: #2d6a4f;
+  }
+}

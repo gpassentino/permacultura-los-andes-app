@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 // ============================================================
 // Permacultura Los Andes — Bootstrap 5 Theme Overrides
 // Earth tones: forest green, terracotta, warm beige
@@ -61,7 +63,7 @@ body {
   &:hover, &:focus {
     transform: scale(1.08);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-    background-color: darken($secondary, 8%);
+    background-color: color.adjust($secondary, $lightness: -8%);
     color: #fff;
   }
 }

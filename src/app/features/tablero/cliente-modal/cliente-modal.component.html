@@ -1,0 +1,160 @@
+<div class="modal-header">
+  <h5 class="modal-title fw-bold">
+    {{ cliente() ? 'Editar Cliente' : 'Nuevo Cliente' }}
+  </h5>
+  <button type="button" class="btn-close" (click)="cerrar.emit()" aria-label="Cerrar"></button>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+<div class="modal-body">
+
+  <!-- Nombre -->
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Nombre del cliente *</label>
+    <input type="text" class="form-control" formControlName="nombre"
+           placeholder="Nombre completo">
+    @if (form.get('nombre')?.invalid && form.get('nombre')?.touched) {
+      <div class="text-danger small mt-1">El nombre es requerido.</div>
+    }
+  </div>
+
+  <div class="row g-3 mb-3">
+    <!-- Tipo de proyecto -->
+    <div class="col-md-6">
+      <label class="form-label fw-semibold">Tipo de proyecto</label>
+      <select class="form-select" formControlName="tipoProyecto">
+        <option value="">— Seleccionar —</option>
+        @for (tipo of TIPOS_PROYECTO; track tipo) {
+          <option [value]="tipo">{{ tipo }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Estado -->
+    <div class="col-md-6">
+      <label class="form-label fw-semibold">Estado</label>
+      <select class="form-select" formControlName="estado">
+        @for (estado of ESTADOS_CLIENTE; track estado) {
+          <option [value]="estado">{{ estado }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <!-- Municipio -->
+    <div class="col-md-6">
+      <label class="form-label fw-semibold">Municipio / Ubicación</label>
+      <input type="text" class="form-control" formControlName="municipio"
+             placeholder="ej: El Retiro, Antioquia">
+    </div>
+
+    <!-- WhatsApp -->
+    <div class="col-md-6">
+      <label class="form-label fw-semibold">WhatsApp (sin +57)</label>
+      <div class="input-group">
+        <span class="input-group-text">+57</span>
+        <input type="tel" class="form-control" formControlName="whatsapp"
+               placeholder="3001234567">
+        @if (form.get('whatsapp')?.value) {
+          <a [href]="whatsappUrl" target="_blank" rel="noopener"
+             class="btn btn-outline-success">💬</a>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-3">
+    <!-- Fecha último contacto -->
+    <div class="col-md-6">
+      <label class="form-label fw-semibold">Fecha de último contacto</label>
+      <input type="date" class="form-control" formControlName="fechaUltimoContacto">
+    </div>
+
+    <!-- Fecha estimada inicio -->
+    <div class="col-md-6">
+      <label class="form-label fw-semibold">Fecha estimada de inicio</label>
+      <input type="date" class="form-control" formControlName="fechaEstimadaInicio">
+    </div>
+  </div>
+
+  <!-- Notas -->
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Notas</label>
+    <textarea class="form-control" formControlName="notas" rows="3"
+              placeholder="Notas internas..."></textarea>
+  </div>
+
+  <!-- Recordatorio -->
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Recordatorio</label>
+    <div class="row g-2">
+      <div class="col-5 col-md-4">
+        <input type="date" class="form-control" formControlName="recordatorioFecha">
+      </div>
+      <div class="col-7 col-md-8">
+        <input type="text" class="form-control" formControlName="recordatorioMensaje"
+               placeholder="Mensaje del recordatorio">
+      </div>
+    </div>
+  </div>
+
+  <!-- Documentos -->
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Documentos</label>
+    <div formArrayName="documentos">
+      @for (doc of documentosArray.controls; track $index; let i = $index) {
+        <div [formGroupName]="i" class="row g-2 mb-2 align-items-center">
+          <div class="col-4">
+            <input type="text" class="form-control form-control-sm"
+                   formControlName="label" placeholder="Etiqueta">
+          </div>
+          <div class="col-7">
+            <input type="url" class="form-control form-control-sm"
+                   formControlName="url" placeholder="URL de Google Drive">
+          </div>
+          <div class="col-1 text-center">
+            <button type="button" class="btn btn-link text-danger p-0"
+                    (click)="removeDocumento(i)" aria-label="Eliminar">✕</button>
+          </div>
+        </div>
+      }
+    </div>
+    <button type="button" class="btn btn-outline-secondary btn-sm mt-1"
+            (click)="addDocumento()">
+      + Agregar documento
+    </button>
+
+  </div>
+
+  <!-- Confirm delete alert -->
+  @if (confirmDelete()) {
+    <div class="alert alert-danger d-flex flex-wrap gap-2 align-items-center py-2">
+      <span class="me-auto">¿Eliminar este cliente permanentemente?</span>
+      <button class="btn btn-danger btn-sm" (click)="onConfirmEliminar()">Sí, eliminar</button>
+      <button class="btn btn-outline-secondary btn-sm" (click)="confirmDelete.set(false)">Cancelar</button>
+    </div>
+  }
+
+</div>
+
+<div class="modal-footer d-flex justify-content-between">
+  @if (cliente()) {
+    <button type="button" class="btn btn-outline-danger btn-sm"
+            (click)="onEliminar()" [disabled]="confirmDelete()">
+      Eliminar cliente
+    </button>
+  } @else {
+    <span></span>
+  }
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-secondary" (click)="cerrar.emit()">
+      Cancelar
+    </button>
+    <button type="submit" class="btn btn-primary"
+            [disabled]="saving() || form.invalid">
+      {{ saving() ? 'Guardando...' : 'Guardar' }}
+    </button>
+  </div>
+</div>
+</form>

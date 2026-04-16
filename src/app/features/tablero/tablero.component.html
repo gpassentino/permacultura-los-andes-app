@@ -1,0 +1,127 @@
+<!-- ── Error alert ── -->
+@if (error()) {
+  <div class="alert alert-danger alert-dismissible mx-3 mt-2 mb-0" role="alert">
+    {{ error() }}
+    <button type="button" class="btn-close" (click)="error.set(null)"></button>
+  </div>
+}
+
+@if (loading()) {
+  <!-- ── Loading spinner ── -->
+  <div class="d-flex justify-content-center align-items-center py-5">
+    <span class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </span>
+  </div>
+} @else {
+
+<!-- ── Recordatorios banner ── -->
+@if (recordatoriosPendientes().length > 0) {
+  <div class="reminder-banner d-flex align-items-center flex-wrap gap-2 px-3 py-2">
+    <span class="fw-semibold">⚠️ Recordatorios pendientes:</span>
+    @for (r of recordatoriosPendientes(); track r.id) {
+      <button class="badge bg-warning text-dark border-0"
+              (click)="openModal(r)">
+        {{ r.nombre }} — {{ r.recordatorioMensaje || 'Sin mensaje' }}
+      </button>
+    }
+  </div>
+}
+
+<!-- ── Mobile: column tab nav ── -->
+<div class="kanban-nav-tabs d-md-none">
+  @for (columna of columnas; track columna) {
+    <button class="nav-pill-tab"
+            [class.active]="columnaActiva() === columna"
+            (click)="columnaActiva.set(columna)">
+      {{ columna }}
+      <span class="badge rounded-pill ms-1"
+            [class.bg-primary]="columnaActiva() === columna"
+            [class.bg-secondary]="columnaActiva() !== columna">
+        {{ (clientesPorColumna().get(columna) ?? []).length }}
+      </span>
+    </button>
+  }
+</div>
+
+<!-- ── Mobile: single column cards ── -->
+<div class="d-md-none p-3">
+  @for (cliente of clientesPorColumna().get(columnaActiva()) ?? []; track cliente.id) {
+    <div (click)="openModal(cliente)">
+      <app-cliente-card [cliente]="cliente" />
+    </div>
+  }
+  @if ((clientesPorColumna().get(columnaActiva()) ?? []).length === 0) {
+    <div class="text-center text-muted py-5">
+      <p class="mb-0">No hay clientes en esta columna</p>
+    </div>
+  }
+</div>
+
+<!-- ── Desktop: full Kanban board ── -->
+<div class="kanban-board d-none d-md-block" cdkDropListGroup>
+  <div class="d-flex gap-3 p-3 h-100">
+    @for (columna of columnas; track columna) {
+      <div class="kanban-column d-flex flex-column">
+
+        <!-- Column header -->
+        <div class="kanban-column-header d-flex justify-content-between align-items-center mb-2 px-1">
+          <span class="fw-semibold small text-dark">{{ columna }}</span>
+          <span class="badge bg-secondary rounded-pill">
+            {{ (clientesPorColumna().get(columna) ?? []).length }}
+          </span>
+        </div>
+
+        <!-- Drop zone -->
+        <div class="kanban-column-body flex-grow-1"
+             cdkDropList
+             [cdkDropListData]="columna"
+             (cdkDropListDropped)="onDrop($event)">
+
+          @for (cliente of clientesPorColumna().get(columna) ?? []; track cliente.id) {
+            <div cdkDrag [cdkDragData]="cliente" (click)="openModal(cliente)">
+              <app-cliente-card [cliente]="cliente" />
+              <div *cdkDragPlaceholder
+                   class="drag-placeholder card mb-2">
+              </div>
+            </div>
+          }
+
+          @if ((clientesPorColumna().get(columna) ?? []).length === 0) {
+            <div class="text-center text-muted py-4 small drop-hint">
+              Arrastra aquí
+            </div>
+          }
+
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- ── FAB: new client ── -->
+<button class="fab" (click)="openModal()" aria-label="Nuevo cliente"
+        title="Nuevo cliente">
+  +
+</button>
+
+}
+
+<!-- ── Modal overlay ── -->
+@if (showModal()) {
+  <div class="modal show d-block modal-overlay"
+       tabindex="-1"
+       (click)="onBackdropClick($event)">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <app-cliente-modal
+          [cliente]="selectedCliente()"
+          (cerrar)="closeModal()"
+          (guardar)="onGuardar($event)"
+          (eliminar)="onEliminar($event)"
+        />
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop show" style="z-index: 1049;"></div>
+}

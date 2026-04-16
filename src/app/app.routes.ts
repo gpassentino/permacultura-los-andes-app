@@ -1,3 +1,16 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './features/auth/auth.guard';
 
-export const routes: Routes = [];
+export const routes: Routes = [
+  {
+    path: 'login',
+    loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent)
+  },
+  {
+    path: 'tablero',
+    loadComponent: () => import('./features/tablero/tablero.component').then(m => m.TableroComponent),
+    canActivate: [authGuard]
+  },
+  { path: '', redirectTo: '/tablero', pathMatch: 'full' },
+  { path: '**', redirectTo: '/tablero' }
+];

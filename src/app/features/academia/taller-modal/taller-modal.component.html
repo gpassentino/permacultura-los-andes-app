@@ -1,0 +1,143 @@
+<div class="modal-header">
+  <h5 class="modal-title fw-bold mb-0">
+    {{ taller() ? 'Editar Taller' : 'Nuevo Taller' }}
+  </h5>
+  <button type="button" class="btn-close ms-auto" (click)="cerrar.emit()" aria-label="Cerrar"></button>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+<div class="modal-body">
+
+  <!-- Nombre + Número -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-8">
+      <label class="form-label fw-semibold required-label">Nombre del taller</label>
+      <input type="text" class="form-control" formControlName="nombre"
+             placeholder="ej: Introducción a la Permacultura" autocomplete="off">
+      @if (form.get('nombre')?.invalid && form.get('nombre')?.touched) {
+        <div class="text-danger small mt-1">El nombre es requerido.</div>
+      }
+    </div>
+    <div class="col-md-4">
+      <label class="form-label fw-semibold">Número de taller</label>
+      <div class="input-group">
+        <span class="input-group-text text-muted">#</span>
+        <input type="number" class="form-control" formControlName="numero"
+               placeholder="20" min="1">
+      </div>
+    </div>
+  </div>
+
+  <!-- Fechas -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-6">
+      <label class="form-label fw-semibold">Fecha de inicio</label>
+      <input type="date" class="form-control" formControlName="fechaInicio">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label fw-semibold">Fecha de fin</label>
+      <input type="date" class="form-control" formControlName="fechaFin">
+    </div>
+  </div>
+
+  <!-- Ubicación + Municipio -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-6">
+      <label class="form-label fw-semibold">Ubicación / Finca</label>
+      <input type="text" class="form-control" formControlName="ubicacion"
+             placeholder="ej: Finca La Esperanza" autocomplete="off">
+    </div>
+    <div class="col-md-6">
+      <label class="form-label fw-semibold">Municipio</label>
+      <input type="text" class="form-control" formControlName="municipio"
+             placeholder="ej: El Retiro" autocomplete="off">
+    </div>
+  </div>
+
+  <!-- Cupo + Precio + Estado -->
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-md-3">
+      <label class="form-label fw-semibold">Cupo máximo</label>
+      <input type="number" class="form-control" formControlName="cupoMaximo"
+             placeholder="20" min="0">
+    </div>
+    <div class="col-6 col-md-4">
+      <label class="form-label fw-semibold">Precio (COP)</label>
+      <div class="input-group">
+        <span class="input-group-text text-muted">$</span>
+        <input type="number" class="form-control" formControlName="precio"
+               placeholder="250000" min="0">
+      </div>
+    </div>
+    <div class="col-12 col-md-5">
+      <label class="form-label fw-semibold">Estado</label>
+      <select class="form-select" formControlName="estado">
+        @for (estado of ESTADOS_TALLER; track estado) {
+          <option [value]="estado">{{ estado }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Enlace de reserva -->
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Enlace de reserva</label>
+    <input type="url" class="form-control" formControlName="enlaceReserva"
+           placeholder="https://...">
+  </div>
+
+  <!-- Descripción -->
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Descripción</label>
+    <textarea class="form-control" formControlName="descripcion" rows="3"
+              placeholder="Descripción pública del taller…"></textarea>
+  </div>
+
+  <!-- Notas internas -->
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Notas internas</label>
+    <textarea class="form-control" formControlName="notasInternas" rows="2"
+              placeholder="Notas privadas, logística, etc…"></textarea>
+  </div>
+
+  <!-- Confirm delete -->
+  @if (confirmDelete()) {
+    <div class="alert alert-danger d-flex flex-wrap gap-2 align-items-center py-2 mb-0">
+      <span class="me-auto fw-semibold">¿Eliminar este taller permanentemente?</span>
+      <button type="button" class="btn btn-danger btn-sm" (click)="onConfirmEliminar()">
+        Sí, eliminar
+      </button>
+      <button type="button" class="btn btn-outline-secondary btn-sm"
+              (click)="confirmDelete.set(false)">
+        Cancelar
+      </button>
+    </div>
+  }
+
+</div><!-- /.modal-body -->
+
+<div class="modal-footer d-flex justify-content-between align-items-center">
+  @if (taller()) {
+    <button type="button" class="btn btn-outline-danger btn-sm"
+            (click)="onEliminar()"
+            [disabled]="confirmDelete()">
+      Eliminar taller
+    </button>
+  } @else {
+    <span></span>
+  }
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary" (click)="cerrar.emit()">
+      Cancelar
+    </button>
+    <button type="submit" class="btn btn-primary" [disabled]="saving() || form.invalid">
+      @if (saving()) {
+        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+        Guardando…
+      } @else {
+        Guardar
+      }
+    </button>
+  </div>
+</div>
+</form>

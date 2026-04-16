@@ -1,0 +1,173 @@
+<div class="academia-container">
+
+  <!-- ── Error alert ── -->
+  @if (error()) {
+    <div class="alert alert-danger alert-dismissible mx-3 mt-2 mb-0 py-2" role="alert">
+      {{ error() }}
+      <button type="button" class="btn-close" (click)="error.set(null)" aria-label="Cerrar"></button>
+    </div>
+  }
+
+  <!-- ── Page header ── -->
+  <div class="academia-header d-flex justify-content-between align-items-center px-3 pt-3 pb-2">
+    <div>
+      <h1 class="h5 fw-bold mb-0">🎓 Academia</h1>
+      <p class="text-muted small mb-0">Talleres y participantes</p>
+    </div>
+    <button class="btn btn-primary btn-sm d-none d-md-inline-flex align-items-center gap-1"
+            (click)="openNuevoTaller()">
+      + Nuevo taller
+    </button>
+  </div>
+
+  <!-- ── Stats banner ── -->
+  @if (!loading()) {
+    <div class="stats-banner">
+      <app-stat-card
+        icon="🎓"
+        label="Talleres realizados"
+        [value]="talleresFinalizados()"
+        color="primary" />
+      <app-stat-card
+        icon="👥"
+        label="Personas formadas"
+        [value]="totalParticipantes()"
+        color="success" />
+      <app-stat-card
+        icon="💰"
+        label="Total recaudado"
+        [value]="(totalRecaudado() | currency:'COP':'symbol-narrow':'1.0-0':'es-CO') ?? ''"
+        color="warning" />
+      <app-stat-card
+        icon="📋"
+        label="Total talleres"
+        [value]="totalTalleres()"
+        color="info" />
+    </div>
+  }
+
+  <!-- ── Loading ── -->
+  @if (loading()) {
+    <div class="d-flex justify-content-center align-items-center py-5">
+      <div class="text-center">
+        <span class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando…</span>
+        </span>
+        <p class="mt-2 text-muted small">Cargando talleres…</p>
+      </div>
+    </div>
+  } @else if (talleres().length === 0) {
+
+    <!-- ── Empty state ── -->
+    <div class="text-center py-5 text-muted">
+      <div style="font-size: 3rem; opacity: 0.3;">🌱</div>
+      <p class="mt-2 mb-0">No hay talleres registrados.</p>
+      <button class="btn btn-primary btn-sm mt-3" (click)="openNuevoTaller()">
+        + Crear primer taller
+      </button>
+    </div>
+
+  } @else {
+
+    <!-- ── Taller list ── -->
+    <div class="taller-list px-3 pb-5">
+      @for (taller of talleres(); track taller.id) {
+        <div class="taller-card card mb-3"
+             role="button"
+             (click)="goToDetalle(taller)"
+             [attr.aria-label]="'Ver detalle de ' + taller.nombre">
+
+          <div class="card-body py-3 px-3">
+
+            <!-- Row 1: número + nombre + estado -->
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-1">
+              <div class="flex-grow-1 min-w-0">
+                @if (taller.numero) {
+                  <span class="taller-numero text-muted me-1">#{{ taller.numero }}</span>
+                }
+                <span class="fw-semibold taller-nombre">{{ taller.nombre }}</span>
+              </div>
+              <span class="badge flex-shrink-0" [class]="estadoBadgeClass(taller.estado)">
+                {{ taller.estado }}
+              </span>
+            </div>
+
+            <!-- Row 2: dates + location -->
+            <div class="d-flex flex-wrap gap-2 text-muted small mb-2">
+              @if (taller.fechaInicio) {
+                <span>
+                  📅 {{ taller.fechaInicio | date:'d MMM yyyy':'':'es-CO' }}
+                  @if (taller.fechaFin) {
+                    — {{ taller.fechaFin | date:'d MMM yyyy':'':'es-CO' }}
+                  }
+                </span>
+              }
+              @if (taller.ubicacion || taller.municipio) {
+                <span>
+                  📍 {{ ubicacionLabel(taller) }}
+                </span>
+              }
+            </div>
+
+            <!-- Row 3: spots + price + edit -->
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="d-flex gap-3 align-items-center">
+                <!-- Spots filled -->
+                <span class="small"
+                      [class.text-danger]="taller.cupoMaximo && taller.participantesCount >= taller.cupoMaximo"
+                      [class.text-muted]="!taller.cupoMaximo || taller.participantesCount < taller.cupoMaximo">
+                  👥
+                  {{ taller.participantesCount }}
+                  @if (taller.cupoMaximo) { / {{ taller.cupoMaximo }} }
+                </span>
+                <!-- Price -->
+                @if (taller.precio) {
+                  <span class="small text-muted">
+                    💵 {{ taller.precio | currency:'COP':'symbol-narrow':'1.0-0':'es-CO' }}
+                  </span>
+                }
+              </div>
+              <!-- Edit button -->
+              <button class="btn btn-link btn-sm text-muted p-0 edit-btn"
+                      (click)="openEditarTaller(taller, $event)"
+                      aria-label="Editar taller">
+                ✏️
+              </button>
+            </div>
+
+          </div>
+        </div>
+      }
+    </div>
+
+  }
+
+  <!-- ── FAB (mobile) ── -->
+  <button class="fab" type="button"
+          (click)="openNuevoTaller()"
+          aria-label="Nuevo taller"
+          title="Nuevo taller">
+    +
+  </button>
+
+</div>
+
+<!-- ── Modal overlay ── -->
+@if (showModal()) {
+  <div class="modal show d-block modal-overlay"
+       tabindex="-1"
+       role="dialog"
+       aria-modal="true"
+       (click)="onBackdropClick($event)">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <app-taller-modal
+          [taller]="selectedTaller()"
+          (cerrar)="closeModal()"
+          (guardar)="onGuardar($event)"
+          (eliminar)="onEliminar($event)" />
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop show" style="z-index: 1049;"></div>
+}

@@ -1,0 +1,293 @@
+<!-- ── Error alert ── -->
+@if (error()) {
+  <div class="alert alert-danger alert-dismissible mx-3 mt-2 mb-0 py-2" role="alert">
+    {{ error() }}
+    <button type="button" class="btn-close" (click)="error.set(null)" aria-label="Cerrar"></button>
+  </div>
+}
+
+<!-- ── Loading ── -->
+@if (loading()) {
+  <div class="d-flex justify-content-center align-items-center py-5">
+    <div class="text-center">
+      <span class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando…</span>
+      </span>
+      <p class="mt-2 text-muted small">Cargando taller…</p>
+    </div>
+  </div>
+} @else if (!taller()) {
+
+  <!-- ── Not found ── -->
+  <div class="text-center py-5 text-muted">
+    <div style="font-size: 3rem; opacity: 0.3;">❓</div>
+    <p class="mt-2">Taller no encontrado.</p>
+    <button class="btn btn-outline-secondary btn-sm" (click)="goBack()">← Volver</button>
+  </div>
+
+} @else {
+
+  <!-- ── Back + header ── -->
+  <div class="detalle-header px-3 pt-3 pb-2">
+    <button class="btn btn-link btn-sm text-muted p-0 mb-2 back-btn"
+            (click)="goBack()" aria-label="Volver a Academia">
+      ← Academia
+    </button>
+    <div class="d-flex justify-content-between align-items-start gap-2">
+      <div class="min-w-0">
+        @if (taller()!.numero) {
+          <span class="text-muted small fw-semibold">Taller #{{ taller()!.numero }}</span>
+        }
+        <h1 class="h5 fw-bold mb-0 mt-1">{{ taller()!.nombre }}</h1>
+      </div>
+      <span class="badge flex-shrink-0 mt-1" [class]="estadoBadgeClass(taller()!.estado)">
+        {{ taller()!.estado }}
+      </span>
+    </div>
+  </div>
+
+  <!-- ── Taller info cards ── -->
+  <div class="info-grid px-3 mb-3">
+
+    @if (taller()!.fechaInicio) {
+      <div class="info-chip">
+        <span class="info-chip__icon">📅</span>
+        <div>
+          <div class="info-chip__label">Fechas</div>
+          <div class="info-chip__value">
+            {{ taller()!.fechaInicio | date:'d MMM yyyy':'':'es-CO' }}
+            @if (taller()!.fechaFin) {
+              — {{ taller()!.fechaFin | date:'d MMM yyyy':'':'es-CO' }}
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (taller()!.ubicacion || taller()!.municipio) {
+      <div class="info-chip">
+        <span class="info-chip__icon">📍</span>
+        <div>
+          <div class="info-chip__label">Ubicación</div>
+          <div class="info-chip__value">
+            {{ taller()!.ubicacion }}
+            @if (taller()!.ubicacion && taller()!.municipio) { · }
+            {{ taller()!.municipio }}
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="info-chip">
+      <span class="info-chip__icon">👥</span>
+      <div>
+        <div class="info-chip__label">Inscritos</div>
+        <div class="info-chip__value">{{ cupoLabel(taller()!) }}</div>
+      </div>
+    </div>
+
+    @if (taller()!.precio) {
+      <div class="info-chip">
+        <span class="info-chip__icon">💵</span>
+        <div>
+          <div class="info-chip__label">Precio</div>
+          <div class="info-chip__value">
+            {{ taller()!.precio | currency:'COP':'symbol-narrow':'1.0-0':'es-CO' }}
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="info-chip">
+      <span class="info-chip__icon">💰</span>
+      <div>
+        <div class="info-chip__label">Recaudado</div>
+        <div class="info-chip__value">
+          {{ taller()!.totalRecaudado | currency:'COP':'symbol-narrow':'1.0-0':'es-CO' }}
+        </div>
+      </div>
+    </div>
+
+    <div class="info-chip">
+      <span class="info-chip__icon">✅</span>
+      <div>
+        <div class="info-chip__label">Pagaron</div>
+        <div class="info-chip__value">{{ totalPagaron() }} / {{ participantesLista().length }}</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Descripción & notas ── -->
+  @if (taller()!.descripcion) {
+    <div class="px-3 mb-3">
+      <h6 class="fw-semibold text-muted small text-uppercase mb-1">Descripción</h6>
+      <p class="small mb-0" style="white-space: pre-line;">{{ taller()!.descripcion }}</p>
+    </div>
+  }
+
+  @if (taller()!.enlaceReserva) {
+    <div class="px-3 mb-3">
+      <a [href]="taller()!.enlaceReserva" target="_blank" rel="noopener noreferrer"
+         class="btn btn-outline-primary btn-sm">
+        🔗 Enlace de reserva
+      </a>
+    </div>
+  }
+
+  @if (taller()!.notasInternas) {
+    <div class="px-3 mb-3">
+      <h6 class="fw-semibold text-muted small text-uppercase mb-1">Notas internas</h6>
+      <p class="small mb-0 fst-italic" style="white-space: pre-line;">{{ taller()!.notasInternas }}</p>
+    </div>
+  }
+
+  <hr class="mx-3 my-2">
+
+  <!-- ── Participantes header ── -->
+  <div class="d-flex justify-content-between align-items-center px-3 mb-2">
+    <h2 class="h6 fw-bold mb-0">
+      Participantes
+      <span class="badge bg-secondary rounded-pill ms-1">{{ participantesLista().length }}</span>
+    </h2>
+    <button class="btn btn-primary btn-sm d-none d-md-inline-flex align-items-center gap-1"
+            (click)="openNuevoParticipante()">
+      + Agregar
+    </button>
+  </div>
+
+  <!-- ── Participantes list ── -->
+  @if (participantesLista().length === 0) {
+    <div class="text-center py-4 text-muted small px-3">
+      <div style="font-size: 2rem; opacity: 0.25;">👤</div>
+      <p class="mb-0 mt-1">Sin participantes registrados.</p>
+    </div>
+  } @else {
+
+    <!-- Desktop: table -->
+    <div class="d-none d-md-block px-3 mb-5">
+      <div class="table-responsive">
+        <table class="table table-hover table-sm participantes-table">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Nombre</th>
+              <th>Ciudad</th>
+              <th>Cómo nos conoció</th>
+              <th class="text-center">Pagó</th>
+              <th class="text-end">Monto</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of participantesLista(); track p.id; let i = $index) {
+              <tr class="participante-row" (click)="openEditarParticipante(p)" role="button">
+                <td class="text-muted">{{ i + 1 }}</td>
+                <td>
+                  <div class="fw-semibold">{{ p.nombreCompleto }}</div>
+                  @if (p.whatsapp) {
+                    <a [href]="whatsappUrl(p.whatsapp)"
+                       target="_blank" rel="noopener noreferrer"
+                       class="text-success text-decoration-none small"
+                       (click)="$event.stopPropagation()">
+                      💬 +57{{ p.whatsapp }}
+                    </a>
+                  }
+                </td>
+                <td class="text-muted small">{{ p.ciudadOrigen }}</td>
+                <td class="text-muted small">{{ p.comoNosConocio }}</td>
+                <td class="text-center">
+                  @if (p.pago) {
+                    <span class="badge bg-success">✓</span>
+                  } @else {
+                    <span class="badge bg-light text-muted">—</span>
+                  }
+                </td>
+                <td class="text-end small">
+                  @if (p.pago && p.montoPagado) {
+                    {{ p.montoPagado | currency:'COP':'symbol-narrow':'1.0-0':'es-CO' }}
+                  }
+                </td>
+                <td class="text-end">
+                  <button class="btn btn-link btn-sm text-muted p-0"
+                          (click)="openEditarParticipante(p); $event.stopPropagation()"
+                          aria-label="Editar participante">✏️</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Mobile: cards -->
+    <div class="d-md-none px-3 mb-5">
+      @for (p of participantesLista(); track p.id; let i = $index) {
+        <div class="participante-card card mb-2"
+             role="button"
+             (click)="openEditarParticipante(p)">
+          <div class="card-body py-2 px-3">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1 min-w-0">
+                <div class="fw-semibold">{{ p.nombreCompleto }}</div>
+                @if (p.ciudadOrigen) {
+                  <div class="text-muted small">📍 {{ p.ciudadOrigen }}</div>
+                }
+              </div>
+              <div class="d-flex align-items-center gap-2 ms-2 flex-shrink-0">
+                @if (p.pago) {
+                  <span class="badge bg-success">✓ Pagó</span>
+                } @else {
+                  <span class="badge bg-light text-muted border">Pendiente</span>
+                }
+              </div>
+            </div>
+            @if (p.whatsapp) {
+              <a [href]="whatsappUrl(p.whatsapp)"
+                 target="_blank" rel="noopener noreferrer"
+                 class="text-success text-decoration-none small"
+                 (click)="$event.stopPropagation()">
+                💬 +57{{ p.whatsapp }}
+              </a>
+            }
+            @if (p.pago && p.montoPagado) {
+              <div class="text-muted small mt-1">
+                💵 {{ p.montoPagado | currency:'COP':'symbol-narrow':'1.0-0':'es-CO' }}
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+  }
+
+  <!-- ── FAB (mobile) ── -->
+  <button class="fab" type="button"
+          (click)="openNuevoParticipante()"
+          aria-label="Agregar participante"
+          title="Agregar participante">
+    +
+  </button>
+
+}<!-- end @else taller -->
+
+<!-- ── Modal overlay ── -->
+@if (showModal()) {
+  <div class="modal show d-block modal-overlay"
+       tabindex="-1"
+       role="dialog"
+       aria-modal="true"
+       (click)="onBackdropClick($event)">
+    <div class="modal-dialog modal-dialog-scrollable">
+      <div class="modal-content">
+        <app-participante-modal
+          [participante]="selectedParticipante()"
+          (cerrar)="closeModal()"
+          (guardar)="onGuardar($event)"
+          (eliminar)="onEliminar($event)" />
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop show" style="z-index: 1049;"></div>
+}

@@ -1,0 +1,7 @@
+<div class="stat-card stat-card--{{ color() }}">
+  @if (icon()) {
+    <div class="stat-card__icon">{{ icon() }}</div>
+  }
+  <div class="stat-card__value">{{ value() }}</div>
+  <div class="stat-card__label">{{ label() }}</div>
+</div>

@@ -11,6 +11,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/tablero/tablero.component').then(m => m.TableroComponent),
     canActivate: [authGuard]
   },
+  {
+    path: 'academia',
+    loadComponent: () => import('./features/academia/academia.component').then(m => m.AcademiaComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'academia/:id',
+    loadComponent: () => import('./features/academia/taller-detalle/taller-detalle.component').then(m => m.TallerDetalleComponent),
+    canActivate: [authGuard]
+  },
   { path: '', redirectTo: '/tablero', pathMatch: 'full' },
   { path: '**', redirectTo: '/tablero' }
 ];

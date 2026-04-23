@@ -21,6 +21,16 @@ export const routes: Routes = [
     loadComponent: () => import('./features/academia/taller-detalle/taller-detalle.component').then(m => m.TallerDetalleComponent),
     canActivate: [authGuard]
   },
+  {
+    path: 'contactos',
+    loadComponent: () => import('./features/contactos/contactos.component').then(m => m.ContactosComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'contactos/:id',
+    loadComponent: () => import('./features/contactos/contacto-detalle/contacto-detalle.component').then(m => m.ContactoDetalleComponent),
+    canActivate: [authGuard]
+  },
   { path: '', redirectTo: '/tablero', pathMatch: 'full' },
   { path: '**', redirectTo: '/tablero' }
 ];

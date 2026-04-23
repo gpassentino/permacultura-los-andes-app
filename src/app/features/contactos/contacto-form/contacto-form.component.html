@@ -1,0 +1,145 @@
+<div class="modal-header">
+  <h5 class="modal-title fw-bold mb-0">
+    {{ contacto() ? 'Editar Contacto' : 'Nuevo Contacto' }}
+  </h5>
+  <button type="button" class="btn-close ms-auto" (click)="cerrar.emit()" aria-label="Cerrar"></button>
+</div>
+
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+<div class="modal-body">
+
+  <!-- Nombre + Teléfono -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-7">
+      <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+      <input type="text" class="form-control" formControlName="name"
+             placeholder="ej: María Fernanda Torres" autocomplete="off">
+      @if (form.get('name')?.invalid && form.get('name')?.touched) {
+        <div class="text-danger small mt-1">El nombre es requerido.</div>
+      }
+    </div>
+    <div class="col-md-5">
+      <label class="form-label fw-semibold">Teléfono WhatsApp <span class="text-danger">*</span></label>
+      <div class="input-group">
+        <span class="input-group-text">📱</span>
+        <input type="tel" class="form-control" formControlName="phone"
+               placeholder="+573001234567">
+      </div>
+      @if (form.get('phone')?.invalid && form.get('phone')?.touched) {
+        <div class="text-danger small mt-1">Teléfono inválido.</div>
+      }
+    </div>
+  </div>
+
+  <!-- Tipo de negocio (checkboxes) -->
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Tipo de negocio</label>
+    <div class="d-flex flex-wrap gap-2">
+      @for (tipo of TIPOS_NEGOCIO; track tipo) {
+        <button type="button"
+                class="tipo-btn"
+                [class.tipo-btn--active]="isTypeSelected(tipo)"
+                (click)="toggleType(tipo)">
+          {{ TIPOS_NEGOCIO_LABELS[tipo] }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Etiqueta WA + Estado -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-7">
+      <label class="form-label fw-semibold">Etiqueta WhatsApp</label>
+      <select class="form-select" formControlName="whatsappLabel">
+        @for (label of WHATSAPP_LABELS; track label) {
+          <option [value]="label">{{ label }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-5">
+      <label class="form-label fw-semibold">Estado</label>
+      <select class="form-select" formControlName="status">
+        @for (estado of ESTADOS_CONTACTO; track estado) {
+          <option [value]="estado">{{ ESTADOS_CONTACTO_LABELS[estado] }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Ubicación -->
+  <div class="row g-3 mb-3">
+    <div class="col-md-5">
+      <label class="form-label fw-semibold">Ciudad / Municipio</label>
+      <select class="form-select" formControlName="city">
+        <option value="">Seleccionar…</option>
+        @for (mun of MUNICIPIOS; track mun) {
+          <option [value]="mun">{{ mun }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-7">
+      <label class="form-label fw-semibold">Dirección</label>
+      <input type="text" class="form-control" formControlName="address"
+             placeholder="ej: Vereda El Chagualo, Km 3" autocomplete="off">
+    </div>
+  </div>
+
+  <!-- Academia: horario preferido -->
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Horario preferido (Academia)</label>
+    <select class="form-select" formControlName="preferredSchedule">
+      <option value="">Sin preferencia</option>
+      <option value="weekday">Días de semana</option>
+      <option value="weekend">Fines de semana</option>
+      <option value="evening">Noches</option>
+    </select>
+  </div>
+
+  <!-- Notas -->
+  <div class="mb-3">
+    <label class="form-label fw-semibold">Notas internas</label>
+    <textarea class="form-control" formControlName="notas" rows="3"
+              placeholder="Observaciones, intereses, historial…"></textarea>
+  </div>
+
+  <!-- Confirm delete -->
+  @if (confirmDelete()) {
+    <div class="alert alert-danger d-flex flex-wrap gap-2 align-items-center py-2 mb-0">
+      <span class="me-auto fw-semibold">¿Eliminar este contacto permanentemente?</span>
+      <button type="button" class="btn btn-danger btn-sm" (click)="onConfirmEliminar()">
+        Sí, eliminar
+      </button>
+      <button type="button" class="btn btn-outline-secondary btn-sm"
+              (click)="confirmDelete.set(false)">
+        Cancelar
+      </button>
+    </div>
+  }
+
+</div><!-- /.modal-body -->
+
+<div class="modal-footer d-flex justify-content-between align-items-center">
+  @if (contacto()) {
+    <button type="button" class="btn btn-outline-danger btn-sm"
+            (click)="onEliminar()"
+            [disabled]="confirmDelete()">
+      Eliminar contacto
+    </button>
+  } @else {
+    <span></span>
+  }
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary" (click)="cerrar.emit()">
+      Cancelar
+    </button>
+    <button type="submit" class="btn btn-primary" [disabled]="saving() || form.invalid">
+      @if (saving()) {
+        <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+        Guardando…
+      } @else {
+        Guardar
+      }
+    </button>
+  </div>
+</div>
+</form>

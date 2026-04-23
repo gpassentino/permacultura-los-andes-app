@@ -1,0 +1,88 @@
+// ── Header ────────────────────────────────────────────────────────────────────
+.detalle-header {
+  border-bottom: 1px solid #e9e0d4;
+  background: #faf6f0;
+  min-height: 64px;
+}
+
+.back-btn {
+  font-size: 0.85rem;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+// ── Quick actions ─────────────────────────────────────────────────────────────
+.quick-actions {
+  background: #faf6f0;
+  border-bottom: 1px solid #e9e0d4;
+  overflow-x: auto;
+  flex-wrap: nowrap !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+.tab-nav {
+  background: #fff;
+
+  .nav-link {
+    font-size: 0.85rem;
+    padding: 0.5rem 0.75rem;
+    color: #6c757d;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+
+    &.active {
+      color: #2d6a4f;
+      border-bottom-color: #2d6a4f;
+      font-weight: 600;
+      background: transparent;
+    }
+
+    &:hover:not(.active) {
+      color: #2d6a4f;
+      background: transparent;
+    }
+  }
+}
+
+// ── Info sections ─────────────────────────────────────────────────────────────
+.info-section {
+  border-bottom: 1px solid #f0e8dc;
+  padding-bottom: 0.75rem;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.info-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9a8570;
+}
+
+// ── WhatsApp label badge ──────────────────────────────────────────────────────
+.badge-wa-label {
+  background-color: #e8f5e9;
+  color: #2d6a4f;
+  border: 1px solid #b2dfdb;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+.modal-overlay {
+  z-index: 1050;
+}
+
+// ── Mobile ────────────────────────────────────────────────────────────────────
+@media (max-width: 767px) {
+  .detalle-header h1 {
+    font-size: 1rem;
+  }
+}

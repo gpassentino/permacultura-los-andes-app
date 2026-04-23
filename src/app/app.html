@@ -21,6 +21,13 @@
           Academia
         </a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link px-2"
+           routerLink="/contactos"
+           routerLinkActive="fw-semibold text-primary">
+          Contactos
+        </a>
+      </li>
     </ul>
     <div class="d-flex align-items-center gap-3">
       <span class="text-muted small">{{ user()?.email }}</span>
@@ -51,6 +58,12 @@
        class="bottom-nav-item d-flex flex-column align-items-center text-decoration-none gap-1 py-2">
       <span style="font-size: 1.3rem;">🎓</span>
       <small>Academia</small>
+    </a>
+    <a routerLink="/contactos"
+       routerLinkActive="active"
+       class="bottom-nav-item d-flex flex-column align-items-center text-decoration-none gap-1 py-2">
+      <span style="font-size: 1.3rem;">📱</span>
+      <small>Contactos</small>
     </a>
     <button class="bottom-nav-item btn btn-link d-flex flex-column align-items-center gap-1 py-2 text-decoration-none"
             (click)="authService.cerrarSesion()">

@@ -1,0 +1,84 @@
+// ── Container ─────────────────────────────────────────────────────────────────
+.message-history-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+// ── Chat timeline ─────────────────────────────────────────────────────────────
+.chat-timeline {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 0.5rem;
+}
+
+// ── Date divider ──────────────────────────────────────────────────────────────
+.date-divider {
+  text-align: center;
+
+  span {
+    display: inline-block;
+    background: #e9e0d4;
+    color: #7a6950;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    padding: 0.2rem 0.75rem;
+    border-radius: 999px;
+  }
+}
+
+// ── Bubble rows ───────────────────────────────────────────────────────────────
+.bubble-row {
+  display: flex;
+  margin-bottom: 0.4rem;
+
+  &--sent {
+    justify-content: flex-end;
+  }
+}
+
+.bubble {
+  max-width: 75%;
+  padding: 0.45rem 0.7rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  position: relative;
+  word-break: break-word;
+
+  &--received {
+    background: #fff;
+    border: 1px solid #d4c5b0;
+    border-bottom-left-radius: 0.25rem;
+    color: #3a3226;
+  }
+
+  &--sent {
+    background: #dcf8c6;       // WhatsApp-style sent green
+    border-bottom-right-radius: 0.25rem;
+    color: #2d2d2d;
+  }
+}
+
+.bubble-time {
+  display: block;
+  font-size: 0.65rem;
+  color: #9a8570;
+  text-align: right;
+  margin-top: 0.15rem;
+}
+
+// ── Phase 2 notice ────────────────────────────────────────────────────────────
+.sync-notice {
+  background: #fef9e7;
+  border: 1px solid #f0e68c;
+  font-size: 0.78rem;
+}
+
+// ── Reply form ────────────────────────────────────────────────────────────────
+.reply-form {
+  border-top: 1px solid #e9e0d4;
+  padding-top: 0.5rem;
+  background: #faf6f0;
+}

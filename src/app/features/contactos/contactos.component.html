@@ -1,0 +1,234 @@
+<div class="contactos-container">
+
+  <!-- ── Error alert ── -->
+  @if (error()) {
+    <div class="alert alert-danger alert-dismissible mx-3 mt-2 mb-0 py-2" role="alert">
+      {{ error() }}
+      <button type="button" class="btn-close" (click)="error.set(null)" aria-label="Cerrar"></button>
+    </div>
+  }
+
+  <!-- ── Page header ── -->
+  <div class="contactos-header d-flex justify-content-between align-items-center px-3 pt-3 pb-2">
+    <div>
+      <h1 class="h5 fw-bold mb-0">📱 Contactos</h1>
+      <p class="text-muted small mb-0">Directorio y CRM de WhatsApp</p>
+    </div>
+    <button class="btn btn-primary btn-sm d-none d-md-inline-flex align-items-center gap-1"
+            (click)="openNuevoContacto()">
+      + Nuevo contacto
+    </button>
+  </div>
+
+  <!-- ── Stats banner ── -->
+  @if (!loading()) {
+    <div class="stats-banner">
+      <div class="stat-chip">
+        <span class="stat-value">{{ totalContactos() }}</span>
+        <span class="stat-label">Total</span>
+      </div>
+      <div class="stat-chip stat-chip--nm">
+        <span class="stat-value">{{ totalNuevos() }}</span>
+        <span class="stat-label">Nuevos</span>
+      </div>
+      <div class="stat-chip stat-chip--ld">
+        <span class="stat-value">{{ totalLeads() }}</span>
+        <span class="stat-label">Leads</span>
+      </div>
+      <div class="stat-chip stat-chip--cl">
+        <span class="stat-value">{{ totalClientes() }}</span>
+        <span class="stat-label">Clientes</span>
+      </div>
+    </div>
+  }
+
+  <!-- ── Quick filter chips ── -->
+  <div class="filter-chips px-3 pb-2 pt-2 d-flex gap-2 flex-wrap">
+    <button class="chip" [class.chip--active]="quickFilter() === 'todos'"
+            (click)="quickFilter.set('todos')">
+      Todos
+    </button>
+    <button class="chip chip--paisajismo" [class.chip--active]="quickFilter() === 'paisajismo'"
+            (click)="quickFilter.set('paisajismo')">
+      🌿 Paisajismo
+    </button>
+    <button class="chip chip--academia" [class.chip--active]="quickFilter() === 'academia'"
+            (click)="quickFilter.set('academia')">
+      🎓 Academia
+    </button>
+    <button class="chip chip--leads" [class.chip--active]="quickFilter() === 'leads'"
+            (click)="quickFilter.set('leads')">
+      ⚡ Leads
+    </button>
+    <button class="chip chip--clientes" [class.chip--active]="quickFilter() === 'clientes'"
+            (click)="quickFilter.set('clientes')">
+      ✅ Clientes
+    </button>
+    <button class="chip chip--proveedor" [class.chip--active]="quickFilter() === 'proveedor'"
+            (click)="quickFilter.set('proveedor')">
+      🏭 Proveedores
+    </button>
+  </div>
+
+  <!-- ── Search + status filter ── -->
+  <div class="search-row px-3 pb-2 d-flex gap-2">
+    <div class="input-group input-group-sm flex-grow-1">
+      <span class="input-group-text bg-white border-end-0">🔍</span>
+      <input type="search" class="form-control border-start-0 ps-0"
+             placeholder="Buscar por nombre, teléfono o ciudad…"
+             [ngModel]="searchQuery()"
+             (ngModelChange)="searchQuery.set($event)">
+    </div>
+    <select class="form-select form-select-sm status-select"
+            [ngModel]="statusFilter()"
+            (ngModelChange)="statusFilter.set($event)">
+      <option value="">Todos los estados</option>
+      @for (estado of ESTADOS_CONTACTO; track estado) {
+        <option [value]="estado">{{ ESTADOS_CONTACTO_LABELS[estado] }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- ── Loading ── -->
+  @if (loading()) {
+    <div class="d-flex justify-content-center align-items-center py-5">
+      <div class="text-center">
+        <span class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando…</span>
+        </span>
+        <p class="mt-2 text-muted small">Cargando contactos…</p>
+      </div>
+    </div>
+
+  } @else if (contactos().length === 0) {
+
+    <!-- ── Empty state ── -->
+    <div class="text-center py-5 text-muted">
+      <div style="font-size: 3rem; opacity: 0.3;">📱</div>
+      <p class="mt-2 mb-0">No hay contactos registrados.</p>
+      <button class="btn btn-primary btn-sm mt-3" (click)="openNuevoContacto()">
+        + Agregar primer contacto
+      </button>
+    </div>
+
+  } @else if (filtered().length === 0) {
+
+    <!-- ── No results ── -->
+    <div class="text-center py-4 text-muted">
+      <div style="font-size: 2rem; opacity: 0.3;">🔍</div>
+      <p class="mt-2 mb-1">Sin resultados para ese filtro.</p>
+      <button class="btn btn-link btn-sm" (click)="quickFilter.set('todos'); searchQuery.set(''); statusFilter.set('')">
+        Limpiar filtros
+      </button>
+    </div>
+
+  } @else {
+
+    <!-- ── Contact list ── -->
+    <div class="contact-list px-3 pb-5">
+      @for (contacto of filtered(); track contacto.id) {
+        <div class="contact-card card mb-2"
+             role="button"
+             (click)="goToDetalle(contacto)"
+             [attr.aria-label]="'Ver detalle de ' + contacto.name">
+
+          <div class="card-body py-2 px-3">
+            <div class="d-flex align-items-start gap-2">
+
+              <!-- Avatar -->
+              <div class="contact-avatar flex-shrink-0">
+                {{ contacto.name.charAt(0).toUpperCase() }}
+              </div>
+
+              <!-- Info -->
+              <div class="flex-grow-1 min-w-0">
+                <!-- Row 1: name + status badge -->
+                <div class="d-flex justify-content-between align-items-center gap-2 mb-1">
+                  <span class="fw-semibold contact-name text-truncate">
+                    {{ businessTypeIcons(contacto.businessTypes) }} {{ contacto.name }}
+                  </span>
+                  <span class="badge flex-shrink-0" [class]="statusBadgeClass(contacto.status)">
+                    {{ statusLabel(contacto.status) }}
+                  </span>
+                </div>
+
+                <!-- Row 2: phone + city -->
+                <div class="d-flex flex-wrap gap-2 text-muted small mb-1">
+                  <span>📞 {{ contacto.phone }}</span>
+                  @if (contacto.location.city) {
+                    <span>📍 {{ contacto.location.city }}</span>
+                  }
+                </div>
+
+                <!-- Row 3: WA label + last message + actions -->
+                <div class="d-flex justify-content-between align-items-center">
+                  <div class="d-flex gap-2 align-items-center">
+                    <span class="badge badge-wa-label text-truncate" style="max-width: 130px;">
+                      {{ contacto.whatsappLabel }}
+                    </span>
+                    <span class="text-muted" style="font-size: 0.7rem;">
+                      {{ contacto.lastMessageAt | date:'d MMM':'':'es-CO' }}
+                    </span>
+                  </div>
+
+                  <!-- Quick action buttons -->
+                  <div class="d-flex gap-1" (click)="$event.stopPropagation()">
+                    <a [href]="whatsappHref(contacto.phone)"
+                       target="_blank" rel="noopener"
+                       class="btn btn-link btn-sm p-0 action-btn"
+                       aria-label="Abrir WhatsApp"
+                       title="Abrir WhatsApp">
+                      💬
+                    </a>
+                    <a [href]="telHref(contacto.phone)"
+                       class="btn btn-link btn-sm p-0 action-btn"
+                       aria-label="Llamar"
+                       title="Llamar">
+                      📞
+                    </a>
+                    <button class="btn btn-link btn-sm p-0 action-btn"
+                            (click)="openEditarContacto(contacto, $event)"
+                            aria-label="Editar contacto"
+                            title="Editar">
+                      ✏️
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+  }
+
+  <!-- ── FAB (mobile) ── -->
+  <button class="fab" type="button"
+          (click)="openNuevoContacto()"
+          aria-label="Nuevo contacto"
+          title="Nuevo contacto">
+    +
+  </button>
+
+</div>
+
+<!-- ── Modal overlay ── -->
+@if (showModal()) {
+  <div class="modal show d-block modal-overlay"
+       tabindex="-1"
+       role="dialog"
+       aria-modal="true"
+       (click)="onBackdropClick($event)">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <app-contacto-form
+          [contacto]="selectedContact()"
+          (cerrar)="closeModal()"
+          (guardar)="onGuardar($event)"
+          (eliminar)="onEliminar($event)" />
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop show" style="z-index: 1049;"></div>
+}

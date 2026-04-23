@@ -1,0 +1,79 @@
+<div class="message-history-container">
+
+  <!-- ── Loading ── -->
+  @if (loading()) {
+    <div class="d-flex justify-content-center py-4">
+      <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+    </div>
+
+  } @else if (messages().length === 0) {
+
+    <!-- ── Empty state ── -->
+    <div class="text-center py-5 text-muted px-3">
+      <div style="font-size: 2.5rem; opacity: 0.25;">💬</div>
+      <p class="mt-2 small mb-0">No hay mensajes registrados.</p>
+      <p class="small text-muted">
+        Los mensajes se sincronizarán automáticamente desde WhatsApp (Fase 2).
+      </p>
+    </div>
+
+  } @else {
+
+    <!-- ── Chat timeline ── -->
+    <div class="chat-timeline px-3 pt-2">
+      @for (msg of messages(); track msg.id; let i = $index) {
+
+        <!-- Date divider -->
+        @if (showDateDivider(messages(), i)) {
+          <div class="date-divider my-2">
+            <span>{{ msg.timestamp | date:'EEEE, d MMM yyyy':'':'es-CO' }}</span>
+          </div>
+        }
+
+        <!-- Message bubble -->
+        <div class="bubble-row" [class.bubble-row--sent]="!msg.fromContact">
+          <div class="bubble" [class.bubble--received]="msg.fromContact"
+                              [class.bubble--sent]="!msg.fromContact">
+            @if (messageTypeIcon(msg)) {
+              <span class="me-1">{{ messageTypeIcon(msg) }}</span>
+            }
+            {{ msg.text }}
+            <span class="bubble-time">
+              {{ msg.timestamp | date:'h:mm a':'':'es-CO' }}
+            </span>
+          </div>
+        </div>
+
+      }
+    </div>
+
+  }
+
+  <!-- ── Phase 2 notice ── -->
+  <div class="sync-notice mx-3 my-2 px-3 py-2 rounded small text-muted">
+    💡 La sincronización automática con WhatsApp está planificada para la Fase 2 (Make.com webhook).
+  </div>
+
+  <!-- ── Reply form ── -->
+  <div class="reply-form px-3 pb-3">
+    @if (sendError()) {
+      <div class="text-danger small mb-1">{{ sendError() }}</div>
+    }
+    <div class="input-group">
+      <input type="text" class="form-control form-control-sm"
+             placeholder="Agregar nota de mensaje…"
+             [formControl]="replyText"
+             (keyup.enter)="sendReply()">
+      <button class="btn btn-primary btn-sm"
+              (click)="sendReply()"
+              [disabled]="sending() || replyText.invalid">
+        @if (sending()) {
+          <span class="spinner-border spinner-border-sm" role="status"></span>
+        } @else {
+          Agregar
+        }
+      </button>
+    </div>
+  </div>
+
+</div>

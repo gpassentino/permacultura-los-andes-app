@@ -1,0 +1,255 @@
+<!-- ── Loading ── -->
+@if (loading()) {
+  <div class="d-flex justify-content-center align-items-center" style="min-height: 60vh;">
+    <div class="text-center">
+      <span class="spinner-border text-primary" role="status"></span>
+      <p class="mt-2 text-muted small">Cargando contacto…</p>
+    </div>
+  </div>
+
+} @else if (!contacto()) {
+
+  <!-- ── Not found ── -->
+  <div class="text-center py-5 text-muted">
+    <div style="font-size: 3rem; opacity: 0.3;">❓</div>
+    <p class="mt-2 mb-0">Contacto no encontrado.</p>
+    <button class="btn btn-link btn-sm mt-2" (click)="goBack()">← Volver a Contactos</button>
+  </div>
+
+} @else {
+
+  <div class="detalle-container">
+
+    <!-- ── Error alert ── -->
+    @if (error()) {
+      <div class="alert alert-danger alert-dismissible mx-3 mt-2 mb-0 py-2" role="alert">
+        {{ error() }}
+        <button type="button" class="btn-close" (click)="error.set(null)" aria-label="Cerrar"></button>
+      </div>
+    }
+
+    <!-- ── Header ── -->
+    <div class="detalle-header d-flex align-items-center gap-3 px-3 pt-3 pb-2">
+      <button class="btn btn-link p-0 text-muted back-btn" (click)="goBack()" aria-label="Volver">
+        ← Volver
+      </button>
+      <div class="flex-grow-1 min-w-0">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <h1 class="h5 fw-bold mb-0 text-truncate">{{ contacto()!.name }}</h1>
+          <span class="badge" [class]="statusBadgeClass(contacto()!.status)">
+            {{ statusLabel(contacto()!.status) }}
+          </span>
+        </div>
+        <p class="text-muted small mb-0">{{ contacto()!.phone }}</p>
+      </div>
+      <button class="btn btn-outline-primary btn-sm flex-shrink-0" (click)="openEditModal()">
+        ✏️ Editar
+      </button>
+    </div>
+
+    <!-- ── Quick action bar ── -->
+    <div class="quick-actions d-flex gap-2 px-3 pb-2">
+      <a [href]="whatsappHref(contacto()!.phone)"
+         target="_blank" rel="noopener"
+         class="btn btn-success btn-sm d-flex align-items-center gap-1">
+        💬 WhatsApp
+      </a>
+      <a [href]="telHref(contacto()!.phone)"
+         class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+        📞 Llamar
+      </a>
+      @if (hasLocation(contacto()!)) {
+        <a [href]="mapsHref(contacto()!)"
+           target="_blank" rel="noopener"
+           class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1">
+          🗺️ Mapa
+        </a>
+      }
+    </div>
+
+    <!-- ── Tabs ── -->
+    <div class="tab-nav border-bottom px-3">
+      <ul class="nav nav-tabs border-0 gap-1">
+        <li class="nav-item">
+          <button class="nav-link" [class.active]="activeTab() === 'info'"
+                  (click)="activeTab.set('info')">
+            📋 Información
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" [class.active]="activeTab() === 'mensajes'"
+                  (click)="activeTab.set('mensajes')">
+            💬 Mensajes
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" [class.active]="activeTab() === 'academia'"
+                  (click)="activeTab.set('academia')">
+            🎓 Academia
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <!-- ── Tab: Información ── -->
+    @if (activeTab() === 'info') {
+      <div class="tab-content px-3 pt-3 pb-5">
+
+        <!-- Tipo de negocio -->
+        <div class="info-section mb-3">
+          <div class="info-label">Tipo de negocio</div>
+          <div class="d-flex flex-wrap gap-1 mt-1">
+            @for (tipo of contacto()!.businessTypes; track tipo) {
+              <span class="badge bg-light text-dark border" style="font-size: 0.8rem;">
+                {{ typeIcon(tipo) }} {{ typeLabel(tipo) }}
+              </span>
+            }
+          </div>
+        </div>
+
+        <!-- Etiqueta WA -->
+        <div class="info-section mb-3">
+          <div class="info-label">Etiqueta WhatsApp</div>
+          <span class="badge-wa-label badge mt-1">{{ contacto()!.whatsappLabel }}</span>
+        </div>
+
+        <!-- Ubicación -->
+        @if (hasLocation(contacto()!)) {
+          <div class="info-section mb-3">
+            <div class="info-label">Ubicación</div>
+            <div class="mt-1">
+              @if (contacto()!.location.city) {
+                <span class="text-body">📍 {{ contacto()!.location.city }}</span>
+              }
+              @if (contacto()!.location.address) {
+                <p class="text-muted small mb-0">{{ contacto()!.location.address }}</p>
+              }
+              @if (contacto()!.location.coordinates) {
+                <p class="text-muted small mb-0">
+                  🌐 {{ contacto()!.location.coordinates!.lat | number:'1.4-4' }},
+                     {{ contacto()!.location.coordinates!.lng | number:'1.4-4' }}
+                </p>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Kanban link -->
+        @if (contacto()!.kanbanCardId) {
+          <div class="info-section mb-3">
+            <div class="info-label">Tablero de Clientes</div>
+            <div class="mt-1">
+              <a routerLink="/tablero" class="btn btn-outline-primary btn-sm">
+                🌿 Ver tarjeta en Tablero
+              </a>
+            </div>
+          </div>
+        }
+
+        <!-- Notas -->
+        @if (contacto()!.notas) {
+          <div class="info-section mb-3">
+            <div class="info-label">Notas internas</div>
+            <p class="mt-1 mb-0 text-body" style="white-space: pre-wrap;">{{ contacto()!.notas }}</p>
+          </div>
+        }
+
+        <!-- Metadata -->
+        <div class="info-section mb-3">
+          <div class="info-label">Metadatos</div>
+          <div class="mt-1 text-muted small">
+            <div>Creado: {{ contacto()!.createdAt | date:'d MMM yyyy, h:mm a':'':'es-CO' }}</div>
+            <div>Último mensaje: {{ contacto()!.lastMessageAt | date:'d MMM yyyy, h:mm a':'':'es-CO' }}</div>
+            <div>Última sincronización: {{ contacto()!.lastSyncAt | date:'d MMM yyyy, h:mm a':'':'es-CO' }}</div>
+          </div>
+        </div>
+
+      </div><!-- /.tab-content -->
+    }
+
+    <!-- ── Tab: Mensajes ── -->
+    @if (activeTab() === 'mensajes') {
+      <div class="pb-5">
+        <app-message-history [contactId]="contacto()!.id!" />
+      </div>
+    }
+
+    <!-- ── Tab: Academia ── -->
+    @if (activeTab() === 'academia') {
+      <div class="tab-content px-3 pt-3 pb-5">
+
+        <!-- Horario preferido -->
+        <div class="info-section mb-3">
+          <div class="info-label">Horario preferido</div>
+          <p class="mt-1 mb-0">{{ scheduleLabel(contacto()!.academiaHistory?.preferredSchedule) }}</p>
+        </div>
+
+        <!-- Talleres completados -->
+        <div class="info-section mb-3">
+          <div class="info-label">Talleres completados</div>
+          @if ((contacto()!.academiaHistory?.completedTalleres ?? []).length === 0) {
+            <p class="text-muted small mt-1 mb-0">Sin talleres completados.</p>
+          } @else {
+            <ul class="list-unstyled mt-1 mb-0">
+              @for (id of contacto()!.academiaHistory!.completedTalleres; track id) {
+                <li>
+                  <a [routerLink]="['/academia', id]" class="text-primary small">
+                    🎓 {{ id }}
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+        <!-- Talleres de interés -->
+        <div class="info-section mb-3">
+          <div class="info-label">Talleres de interés</div>
+          @if ((contacto()!.academiaHistory?.interestedTalleres ?? []).length === 0) {
+            <p class="text-muted small mt-1 mb-0">Sin talleres de interés registrados.</p>
+          } @else {
+            <ul class="list-unstyled mt-1 mb-0">
+              @for (id of contacto()!.academiaHistory!.interestedTalleres; track id) {
+                <li>
+                  <a [routerLink]="['/academia', id]" class="text-primary small">
+                    ⭐ {{ id }}
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <a routerLink="/academia" class="btn btn-outline-primary btn-sm">
+            🎓 Ver talleres disponibles
+          </a>
+        </div>
+
+      </div><!-- /.tab-content -->
+    }
+
+  </div><!-- /.detalle-container -->
+
+}
+
+<!-- ── Edit modal ── -->
+@if (showEditModal() && contacto()) {
+  <div class="modal show d-block modal-overlay"
+       tabindex="-1"
+       role="dialog"
+       aria-modal="true"
+       (click)="onBackdropClick($event)">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <app-contacto-form
+          [contacto]="contacto()"
+          (cerrar)="closeEditModal()"
+          (guardar)="onGuardar($event)"
+          (eliminar)="onEliminar($event)" />
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop show" style="z-index: 1049;"></div>
+}

@@ -5,7 +5,7 @@
 // Earth tones: forest green, terracotta, warm beige
 // ============================================================
 
-// 1. Customize Bootstrap variables BEFORE importing Bootstrap
+// 1. Customize Bootstrap variables BEFORE loading Bootstrap
 $primary:       #2d6a4f;   // forest green
 $secondary:     #c96b3a;   // terracotta
 $success:       #52b788;   // sage green
@@ -33,6 +33,7 @@ $badge-padding-y:   0.35em;
 $badge-padding-x:   0.65em;
 
 // 2. Import Bootstrap
+// stylelint-disable-next-line import/no-deprecated
 @import 'bootstrap/scss/bootstrap';
 
 // 3. Global utility styles

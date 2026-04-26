@@ -46,3 +46,6 @@ Thumbs.db
 # Firebase environment files — contain API keys, never commit
 src/environments/environment.ts
 src/environments/environment.prod.ts
+
+# Local planning notes — not for version control
+TODO.md

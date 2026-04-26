@@ -2,7 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { BehaviorSubject } from 'rxjs';
 import { TableroComponent } from './tablero.component';
 import { ClienteService } from '../../services/cliente.service';
-import { Cliente, EstadoCliente } from '../../shared/models/cliente.model';
+import { RecordatorioService } from '../../services/recordatorio.service';
+import { Cliente } from '../../shared/models/cliente.model';
 
 function makeCliente(overrides: Partial<Cliente> = {}): Cliente {
   return {
@@ -47,6 +48,7 @@ describe('TableroComponent', () => {
       imports: [TableroComponent],
       providers: [
         { provide: ClienteService, useValue: mockClienteService },
+        RecordatorioService,
       ],
     }).compileComponents();
   });
@@ -84,7 +86,7 @@ describe('TableroComponent', () => {
     });
   });
 
-  describe('recordatoriosPendientes', () => {
+  describe('recordatoriosBanner', () => {
     it('should include past-due reminders', () => {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
@@ -92,17 +94,17 @@ describe('TableroComponent', () => {
         makeCliente({ id: '1', recordatorioFecha: yesterday }),
       ]);
       const component = createComponent();
-      expect(component.recordatoriosPendientes().length).toBe(1);
+      expect(component.recordatoriosBanner().length).toBe(1);
     });
 
-    it('should exclude future reminders', () => {
+    it('should exclude reminders more than one day out', () => {
       const nextWeek = new Date();
       nextWeek.setDate(nextWeek.getDate() + 7);
       clientesSubject.next([
         makeCliente({ id: '1', recordatorioFecha: nextWeek }),
       ]);
       const component = createComponent();
-      expect(component.recordatoriosPendientes().length).toBe(0);
+      expect(component.recordatoriosBanner().length).toBe(0);
     });
   });
 

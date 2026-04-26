@@ -1,7 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Component, signal } from '@angular/core';
+import { Component, LOCALE_ID, signal } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeEsCO from '@angular/common/locales/es-CO';
 import { ClienteModalComponent } from './cliente-modal.component';
 import { Cliente } from '../../../shared/models/cliente.model';
+
+registerLocaleData(localeEsCO);
 
 function makeCliente(overrides: Partial<Cliente> = {}): Cliente {
   return {
@@ -47,6 +51,7 @@ describe('ClienteModalComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [TestHostComponent],
+      providers: [{ provide: LOCALE_ID, useValue: 'es-CO' }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestHostComponent);
@@ -157,7 +162,7 @@ describe('ClienteModalComponent', () => {
   describe('cerrar', () => {
     it('should emit cerrar on cancel', () => {
       fixture.detectChanges();
-      const cancelBtn = fixture.nativeElement.querySelector('.btn-secondary');
+      const cancelBtn = fixture.nativeElement.querySelector('.modal-footer .btn-outline-secondary');
       cancelBtn.click();
       expect(host.cerrado).toBe(true);
     });

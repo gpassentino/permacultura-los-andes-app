@@ -58,21 +58,25 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 
 The app is hosted on Firebase Hosting at **https://permacultura-los-andes.web.app**.
 
-To deploy a new version:
+**Pushing to `main` automatically deploys** via GitHub Actions ([.github/workflows/firebase-hosting-merge.yml](.github/workflows/firebase-hosting-merge.yml)). Open PRs also get a temporary preview URL via [.github/workflows/firebase-hosting-pull-request.yml](.github/workflows/firebase-hosting-pull-request.yml).
+
+### Manual deploy (when needed)
 
 ```bash
 ng build && firebase deploy --only hosting
 ```
 
-If you've changed `firestore.rules`, deploy those too:
+### Firestore rules
+
+Firestore rules are NOT auto-deployed — they require a deliberate manual deploy:
 
 ```bash
-ng build && firebase deploy --only hosting,firestore:rules
+firebase deploy --only firestore:rules
 ```
 
-Firestore rules live in [firestore.rules](firestore.rules) — that file is the source of truth, not the Firebase console. Any console edits will be overwritten on the next deploy.
+Rules live in [firestore.rules](firestore.rules); that file is the source of truth, not the Firebase console. Any console edits will be overwritten on the next rules deploy.
 
-The Firebase project ID is `permacultura-los-andes` (pinned in [.firebaserc](.firebaserc)). To deploy you need to be logged in via `firebase login` with an account that has Editor/Owner access to the project.
+The Firebase project ID is `permacultura-los-andes` (pinned in [.firebaserc](.firebaserc)). For manual deploys you need to be logged in via `firebase login` with an account that has Editor/Owner access to the project.
 
 ## Additional Resources
 

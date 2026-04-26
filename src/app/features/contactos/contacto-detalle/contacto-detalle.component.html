@@ -40,7 +40,11 @@
             {{ statusLabel(contacto()!.status) }}
           </span>
         </div>
-        <p class="text-muted small mb-0">{{ contacto()!.phone }}</p>
+        <p class="text-muted small mb-0">
+          {{ contacto()!.phone }}
+          <span class="mx-1">·</span>
+          💬 {{ lastMessageRelative(contacto()!.lastMessageAt) }}
+        </p>
       </div>
       <button class="btn btn-outline-primary btn-sm flex-shrink-0" (click)="openEditModal()">
         ✏️ Editar

@@ -236,4 +236,56 @@ describe('ContactoDetalleComponent', () => {
       expect(c.typeIcon('academia')).toBe('🎓');
     });
   });
+
+  describe('lastMessageRelative', () => {
+    it('returns fallback when date is null/undefined', () => {
+      const c = createComponent();
+      expect(c.lastMessageRelative(null)).toBe('Sin mensajes registrados');
+      expect(c.lastMessageRelative(undefined)).toBe('Sin mensajes registrados');
+    });
+
+    it('handles seconds-old as "Hace un momento"', () => {
+      const c = createComponent();
+      const justNow = new Date(Date.now() - 30 * 1000);
+      expect(c.lastMessageRelative(justNow)).toBe('Hace un momento');
+    });
+
+    it('formats minutes (singular vs plural)', () => {
+      const c = createComponent();
+      expect(c.lastMessageRelative(new Date(Date.now() - 1 * 60_000))).toBe('Hace 1 minuto');
+      expect(c.lastMessageRelative(new Date(Date.now() - 5 * 60_000))).toBe('Hace 5 minutos');
+    });
+
+    it('formats hours (singular vs plural)', () => {
+      const c = createComponent();
+      expect(c.lastMessageRelative(new Date(Date.now() - 1  * 3_600_000))).toBe('Hace 1 hora');
+      expect(c.lastMessageRelative(new Date(Date.now() - 5  * 3_600_000))).toBe('Hace 5 horas');
+    });
+
+    it('formats days (singular vs plural)', () => {
+      const c = createComponent();
+      const oneDay  = 24 * 3_600_000;
+      expect(c.lastMessageRelative(new Date(Date.now() - 1 * oneDay))).toBe('Hace 1 día');
+      expect(c.lastMessageRelative(new Date(Date.now() - 3 * oneDay))).toBe('Hace 3 días');
+    });
+
+    it('formats weeks once past 7 days', () => {
+      const c = createComponent();
+      const oneDay = 24 * 3_600_000;
+      expect(c.lastMessageRelative(new Date(Date.now() - 14 * oneDay))).toBe('Hace 2 semanas');
+    });
+
+    it('formats months once past 30 days', () => {
+      const c = createComponent();
+      const oneDay = 24 * 3_600_000;
+      expect(c.lastMessageRelative(new Date(Date.now() - 60 * oneDay))).toBe('Hace 2 meses');
+    });
+
+    it('formats years once past 365 days', () => {
+      const c = createComponent();
+      const oneDay = 24 * 3_600_000;
+      expect(c.lastMessageRelative(new Date(Date.now() - 400 * oneDay))).toBe('Hace 1 año');
+      expect(c.lastMessageRelative(new Date(Date.now() - 800 * oneDay))).toBe('Hace 2 años');
+    });
+  });
 });

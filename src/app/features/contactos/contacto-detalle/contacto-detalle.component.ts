@@ -140,4 +140,29 @@ export class ContactoDetalleComponent {
     };
     return schedule ? (map[schedule] ?? schedule) : '—';
   }
+
+  lastMessageRelative(date: Date | null | undefined): string {
+    if (!date) return 'Sin mensajes registrados';
+
+    const diffMs = Date.now() - date.getTime();
+    const diffMin = Math.floor(diffMs / 60_000);
+
+    if (diffMin < 1)   return 'Hace un momento';
+    if (diffMin < 60)  return `Hace ${diffMin} ${diffMin === 1 ? 'minuto' : 'minutos'}`;
+
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24)   return `Hace ${diffHr} ${diffHr === 1 ? 'hora' : 'horas'}`;
+
+    const diffDay = Math.floor(diffHr / 24);
+    if (diffDay < 7)   return `Hace ${diffDay} ${diffDay === 1 ? 'día' : 'días'}`;
+
+    const diffWk = Math.floor(diffDay / 7);
+    if (diffDay < 30)  return `Hace ${diffWk} ${diffWk === 1 ? 'semana' : 'semanas'}`;
+
+    const diffMo = Math.floor(diffDay / 30);
+    if (diffDay < 365) return `Hace ${diffMo} ${diffMo === 1 ? 'mes' : 'meses'}`;
+
+    const diffYr = Math.floor(diffDay / 365);
+    return `Hace ${diffYr} ${diffYr === 1 ? 'año' : 'años'}`;
+  }
 }

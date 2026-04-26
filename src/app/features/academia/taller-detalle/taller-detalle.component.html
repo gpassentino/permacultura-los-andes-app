@@ -150,10 +150,18 @@
       Participantes
       <span class="badge bg-secondary rounded-pill ms-1">{{ participantesLista().length }}</span>
     </h2>
-    <button class="btn btn-primary btn-sm d-none d-md-inline-flex align-items-center gap-1"
-            (click)="openNuevoParticipante()">
-      + Agregar
-    </button>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1"
+              (click)="exportarParticipantesCsv()"
+              [disabled]="participantesLista().length === 0"
+              title="Exportar participantes a CSV">
+        ⬇️ <span class="d-none d-md-inline">Exportar</span>
+      </button>
+      <button class="btn btn-primary btn-sm d-none d-md-inline-flex align-items-center gap-1"
+              (click)="openNuevoParticipante()">
+        + Agregar
+      </button>
+    </div>
   </div>
 
   <!-- ── Participantes list ── -->

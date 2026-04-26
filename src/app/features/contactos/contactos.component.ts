@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 import { ContactoService } from '../../services/contacto.service';
+import { CsvExportService, CsvColumn } from '../../services/csv-export.service';
 import {
   Contacto,
   TipoNegocio, EstadoContacto,
@@ -26,6 +27,7 @@ type QuickFilter = 'todos' | TipoNegocio | 'leads' | 'clientes';
 })
 export class ContactosComponent {
   private contactoService = inject(ContactoService);
+  private csvExport       = inject(CsvExportService);
   private router          = inject(Router);
 
   // Expose constants to template
@@ -139,6 +141,22 @@ export class ContactosComponent {
     } catch {
       this.error.set('Error al eliminar el contacto. Intente de nuevo.');
     }
+  }
+
+  exportarCsv(): void {
+    const columns: CsvColumn<Contacto>[] = [
+      { header: 'Nombre',         value: c => c.name },
+      { header: 'Teléfono',       value: c => c.phone },
+      { header: 'Estado',         value: c => ESTADOS_CONTACTO_LABELS[c.status] ?? c.status },
+      { header: 'Etiqueta WA',    value: c => c.whatsappLabel },
+      { header: 'Tipos',          value: c => c.businessTypes.map(t => TIPOS_NEGOCIO_LABELS[t] ?? t) },
+      { header: 'Ciudad',         value: c => c.location.city ?? '' },
+      { header: 'Último mensaje', value: c => c.lastMessageAt },
+      { header: 'Notas',          value: c => c.notas ?? '' },
+    ];
+    const today = new Date();
+    const stamp = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    this.csvExport.exportToCsv(`contactos_${stamp}.csv`, columns, this.filtered());
   }
 
   // ── Display helpers ──────────────────────────────────────────────────────────

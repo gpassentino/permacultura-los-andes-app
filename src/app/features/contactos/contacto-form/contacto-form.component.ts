@@ -2,16 +2,19 @@ import {
   Component, inject, input, output, OnInit, signal, ChangeDetectionStrategy
 } from '@angular/core';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import {
   Contacto,
   WHATSAPP_LABELS, ESTADOS_CONTACTO, ESTADOS_CONTACTO_LABELS,
   TIPOS_NEGOCIO, TIPOS_NEGOCIO_LABELS, MUNICIPIOS,
   TipoNegocio
 } from '../../../shared/models/contacto.model';
+import { ContactoService } from '../../../services/contacto.service';
+import { normalizePhone } from '../../../shared/utils/phone';
 
 @Component({
   selector: 'app-contacto-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './contacto-form.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -29,7 +32,8 @@ export class ContactoFormComponent implements OnInit {
   readonly TIPOS_NEGOCIO_LABELS   = TIPOS_NEGOCIO_LABELS;
   readonly MUNICIPIOS             = MUNICIPIOS;
 
-  private fb = inject(FormBuilder);
+  private fb              = inject(FormBuilder);
+  private contactoService = inject(ContactoService);
 
   form = this.fb.group({
     name:             ['', Validators.required],
@@ -48,6 +52,7 @@ export class ContactoFormComponent implements OnInit {
 
   saving        = signal(false);
   confirmDelete = signal(false);
+  duplicateOf   = signal<Contacto | null>(null);
 
   ngOnInit(): void {
     const c = this.contacto();
@@ -64,6 +69,7 @@ export class ContactoFormComponent implements OnInit {
       });
       this.selectedTypes.set(new Set(c.businessTypes));
     }
+    this.form.get('phone')?.valueChanges.subscribe(() => this.duplicateOf.set(null));
   }
 
   toggleType(type: TipoNegocio): void {
@@ -89,36 +95,49 @@ export class ContactoFormComponent implements OnInit {
     }
     if (this.saving()) return;
     this.saving.set(true);
-    try {
-      const v = this.form.value;
-      const types = Array.from(this.selectedTypes());
+    this.duplicateOf.set(null);
 
-      const data: Partial<Contacto> = {
-        name:           v.name          ?? '',
-        phone:          v.phone         ?? '',
-        whatsappLabel:  v.whatsappLabel as Contacto['whatsappLabel'],
-        status:         v.status        as Contacto['status'],
-        businessTypes:  types.length > 0 ? types : ['general'],
-        location: {
-          ...(v.city    ? { city:    v.city    } : {}),
-          ...(v.address ? { address: v.address } : {})
-        },
-        notas: v.notas ?? '',
-        academiaHistory: {
-          ...(this.contacto()?.academiaHistory ?? {
-            completedTalleres:  [],
-            interestedTalleres: []
-          }),
-          ...(v.preferredSchedule
-            ? { preferredSchedule: v.preferredSchedule as 'weekday' | 'weekend' | 'evening' }
-            : {})
-        }
-      };
+    const v = this.form.value;
+    const types = Array.from(this.selectedTypes());
 
-      this.guardar.emit({ data, id: this.contacto()?.id });
-    } finally {
-      this.saving.set(false);
+    const phoneInput = v.phone ?? '';
+    const editingId  = this.contacto()?.id;
+    const currentNormalized = this.contacto()?.normalizedPhone ?? '';
+    const newNormalized     = normalizePhone(phoneInput);
+    // Only check for dup when creating, or when editing and phone actually changed
+    if (newNormalized && newNormalized !== currentNormalized) {
+      const existing = await this.contactoService.findByPhone(phoneInput);
+      if (existing && existing.id !== editingId) {
+        this.duplicateOf.set(existing);
+        this.saving.set(false);
+        return;
+      }
     }
+
+    const data: Partial<Contacto> = {
+      name:           v.name          ?? '',
+      phone:          v.phone         ?? '',
+      whatsappLabel:  v.whatsappLabel as Contacto['whatsappLabel'],
+      status:         v.status        as Contacto['status'],
+      businessTypes:  types.length > 0 ? types : ['general'],
+      location: {
+        ...(v.city    ? { city:    v.city    } : {}),
+        ...(v.address ? { address: v.address } : {})
+      },
+      notas: v.notas ?? '',
+      academiaHistory: {
+        ...(this.contacto()?.academiaHistory ?? {
+          completedTalleres:  [],
+          interestedTalleres: []
+        }),
+        ...(v.preferredSchedule
+          ? { preferredSchedule: v.preferredSchedule as 'weekday' | 'weekend' | 'evening' }
+          : {})
+      }
+    };
+
+    // Keep saving=true until the modal closes — prevents double-submit.
+    this.guardar.emit({ data, id: this.contacto()?.id });
   }
 
   onEliminar(): void { this.confirmDelete.set(true); }

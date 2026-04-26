@@ -102,6 +102,21 @@
               placeholder="Observaciones, intereses, historial…"></textarea>
   </div>
 
+  <!-- Duplicate phone warning -->
+  @if (duplicateOf(); as dup) {
+    <div class="alert alert-warning d-flex flex-wrap gap-2 align-items-center py-2 mb-3">
+      <span class="me-auto">
+        Ya existe un contacto con ese teléfono:
+        <strong>{{ dup.name }}</strong>
+      </span>
+      <a class="btn btn-outline-primary btn-sm"
+         [routerLink]="['/contactos', dup.id]"
+         (click)="cerrar.emit()">
+        Ver contacto
+      </a>
+    </div>
+  }
+
   <!-- Confirm delete -->
   @if (confirmDelete()) {
     <div class="alert alert-danger d-flex flex-wrap gap-2 align-items-center py-2 mb-0">

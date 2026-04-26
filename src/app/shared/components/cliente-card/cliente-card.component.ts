@@ -1,10 +1,11 @@
 import { Component, input, computed, inject, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Cliente } from '../../models/cliente.model';
 import { RecordatorioService } from '../../../services/recordatorio.service';
 
 @Component({
   selector: 'app-cliente-card',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './cliente-card.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })

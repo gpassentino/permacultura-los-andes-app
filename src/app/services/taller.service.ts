@@ -3,7 +3,7 @@ import {
   Firestore, collection, collectionData,
   addDoc, updateDoc, deleteDoc, doc, docData,
   serverTimestamp, Timestamp, query, orderBy,
-  runTransaction, increment
+  runTransaction, increment, arrayUnion, arrayRemove
 } from '@angular/fire/firestore';
 import { Observable, map } from 'rxjs';
 import {
@@ -72,14 +72,24 @@ export class TallerService {
   /**
    * Adds a participante and atomically updates the taller's
    * participantesCount (+1) and totalRecaudado (+montoPagado).
+   * If `data.contactoId` is set, also pushes the taller id onto the
+   * contact's academiaHistory (completedTalleres if taller is Finalizado,
+   * interestedTalleres otherwise).
    */
   async addParticipante(tallerId: string, data: Partial<Participante>): Promise<void> {
     await runInInjectionContext(this.injector, () =>
       runTransaction(this.firestore, async (tx) => {
-        const partCol = collection(this.firestore, 'talleres', tallerId, 'participantes');
+        const partCol   = collection(this.firestore, 'talleres', tallerId, 'participantes');
         const tallerRef = doc(this.firestore, 'talleres', tallerId);
         const partRef   = doc(partCol);
         const monto = (data.pago && data.montoPagado) ? data.montoPagado : 0;
+
+        // Read taller estado to decide which academiaHistory bucket to update
+        let tallerEstado: Taller['estado'] | undefined;
+        if (data.contactoId) {
+          const tallerSnap = await tx.get(tallerRef);
+          tallerEstado = (tallerSnap.data() as FirestoreTaller | undefined)?.estado;
+        }
 
         tx.set(partRef, {
           ...this.participanteToFirestore(data),
@@ -89,6 +99,14 @@ export class TallerService {
           participantesCount: increment(1),
           totalRecaudado:     increment(monto)
         });
+
+        if (data.contactoId) {
+          const contactRef = doc(this.firestore, 'contacts', data.contactoId);
+          const bucket = tallerEstado === 'Finalizado'
+            ? 'academiaHistory.completedTalleres'
+            : 'academiaHistory.interestedTalleres';
+          tx.update(contactRef, { [bucket]: arrayUnion(tallerId) });
+        }
       })
     );
   }
@@ -124,6 +142,9 @@ export class TallerService {
 
   /**
    * Deletes a participante and decrements taller counters atomically.
+   * Also pulls the taller id from both completedTalleres and interestedTalleres
+   * on the linked contact (we don't know which bucket it's in without reading,
+   * and arrayRemove is a no-op if the value isn't there).
    */
   async deleteParticipante(tallerId: string, participante: Participante): Promise<void> {
     await runInInjectionContext(this.injector, () =>
@@ -137,6 +158,14 @@ export class TallerService {
           participantesCount: increment(-1),
           totalRecaudado:     increment(-monto)
         });
+
+        if (participante.contactoId) {
+          const contactRef = doc(this.firestore, 'contacts', participante.contactoId);
+          tx.update(contactRef, {
+            'academiaHistory.completedTalleres':  arrayRemove(tallerId),
+            'academiaHistory.interestedTalleres': arrayRemove(tallerId)
+          });
+        }
       })
     );
   }
@@ -195,6 +224,7 @@ export class TallerService {
   private participanteFromFirestore(data: FirestoreParticipante): Participante {
     return {
       id:              data.id,
+      contactoId:      data.contactoId      ?? '',
       nombreCompleto:  data.nombreCompleto  ?? '',
       whatsapp:        data.whatsapp        ?? '',
       email:           data.email           ?? '',

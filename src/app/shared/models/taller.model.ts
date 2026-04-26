@@ -62,8 +62,9 @@ export interface FirestoreTaller {
 
 export interface Participante {
   id?: string;
-  nombreCompleto: string;
-  whatsapp: string;
+  contactoId: string;
+  nombreCompleto: string;       // denormalized snapshot of Contacto.name
+  whatsapp: string;             // denormalized snapshot of Contacto.phone
   email: string;
   ciudadOrigen: string;
   comoNosConocio: ComoNosConocio | '';
@@ -75,6 +76,7 @@ export interface Participante {
 
 export interface FirestoreParticipante {
   id: string;
+  contactoId?: string;
   nombreCompleto: string;
   whatsapp: string;
   email: string;

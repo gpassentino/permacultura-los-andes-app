@@ -6,7 +6,8 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs';
 
-import { ContactoService } from '../../../services/contacto.service';
+import { ContactoService, ContactoLinkedError } from '../../../services/contacto.service';
+import { TallerService } from '../../../services/taller.service';
 import {
   Contacto,
   ESTADOS_CONTACTO_LABELS, STATUS_BADGE_CLASS,
@@ -24,6 +25,7 @@ import { MessageHistoryComponent } from '../message-history/message-history.comp
 })
 export class ContactoDetalleComponent {
   private contactoService = inject(ContactoService);
+  private tallerService   = inject(TallerService);
   private route           = inject(ActivatedRoute);
   private router          = inject(Router);
 
@@ -42,6 +44,16 @@ export class ContactoDetalleComponent {
 
   readonly loading  = computed(() => this.contactoRaw() === undefined);
   readonly contacto = computed(() => this.contactoRaw() ?? null);
+
+  // Talleres lookup so we can render names instead of raw IDs in academiaHistory
+  private readonly talleresList = toSignal(this.tallerService.getTalleres(), { initialValue: [] });
+  readonly tallerNameById = computed(() => {
+    const map = new Map<string, string>();
+    for (const t of this.talleresList()) {
+      if (t.id) map.set(t.id, t.nombre);
+    }
+    return map;
+  });
 
   // ── Active tab ──────────────────────────────────────────────────────────────
   readonly activeTab = signal<'info' | 'mensajes' | 'academia'>('info');
@@ -87,8 +99,22 @@ export class ContactoDetalleComponent {
       this.error.set(null);
       await this.contactoService.deleteContacto(id);
       this.router.navigate(['/contactos']);
-    } catch {
-      this.error.set('Error al eliminar. Intente de nuevo.');
+    } catch (e) {
+      if (e instanceof ContactoLinkedError) {
+        const parts: string[] = [];
+        if (e.counts.clientes > 0) {
+          parts.push(`${e.counts.clientes} tarjeta(s) en el Tablero`);
+        }
+        if (e.counts.participantes > 0) {
+          parts.push(`${e.counts.participantes} inscripción(es) en Academia`);
+        }
+        this.error.set(
+          `No se puede eliminar: el contacto tiene ${parts.join(' y ')}. ` +
+          `Elimine esos registros primero.`
+        );
+      } else {
+        this.error.set('Error al eliminar. Intente de nuevo.');
+      }
     }
   }
 
@@ -130,6 +156,10 @@ export class ContactoDetalleComponent {
 
   hasLocation(contacto: Contacto): boolean {
     return !!(contacto.location.city || contacto.location.address || contacto.location.coordinates);
+  }
+
+  tallerName(id: string): string {
+    return this.tallerNameById().get(id) ?? 'Taller no encontrado';
   }
 
   scheduleLabel(schedule?: string): string {

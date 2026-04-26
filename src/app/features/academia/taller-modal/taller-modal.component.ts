@@ -63,26 +63,23 @@ export class TallerModalComponent implements OnInit {
     }
     if (this.saving()) return;
     this.saving.set(true);
-    try {
-      const v = this.form.value;
-      const data: Partial<Taller> = {
-        nombre:        v.nombre        ?? '',
-        numero:        v.numero        ?? null,
-        fechaInicio:   this.toDate(v.fechaInicio ?? ''),
-        fechaFin:      this.toDate(v.fechaFin    ?? ''),
-        ubicacion:     v.ubicacion     ?? '',
-        municipio:     v.municipio     ?? '',
-        cupoMaximo:    v.cupoMaximo    ?? null,
-        precio:        v.precio        ?? null,
-        descripcion:   v.descripcion   ?? '',
-        estado:        v.estado as Taller['estado'],
-        enlaceReserva: v.enlaceReserva ?? '',
-        notasInternas: v.notasInternas ?? ''
-      };
-      this.guardar.emit({ data, id: this.taller()?.id });
-    } finally {
-      this.saving.set(false);
-    }
+    const v = this.form.value;
+    const data: Partial<Taller> = {
+      nombre:        v.nombre        ?? '',
+      numero:        v.numero        ?? null,
+      fechaInicio:   this.toDate(v.fechaInicio ?? ''),
+      fechaFin:      this.toDate(v.fechaFin    ?? ''),
+      ubicacion:     v.ubicacion     ?? '',
+      municipio:     v.municipio     ?? '',
+      cupoMaximo:    v.cupoMaximo    ?? null,
+      precio:        v.precio        ?? null,
+      descripcion:   v.descripcion   ?? '',
+      estado:        v.estado as Taller['estado'],
+      enlaceReserva: v.enlaceReserva ?? '',
+      notasInternas: v.notasInternas ?? ''
+    };
+    // Keep saving=true until the modal closes — prevents double-submit.
+    this.guardar.emit({ data, id: this.taller()?.id });
   }
 
   onEliminar(): void { this.confirmDelete.set(true); }

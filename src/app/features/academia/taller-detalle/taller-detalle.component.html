@@ -217,6 +217,13 @@
                   }
                 </td>
                 <td class="text-end">
+                  @if (p.contactoId) {
+                    <a [routerLink]="['/contactos', p.contactoId]"
+                       class="btn btn-link btn-sm text-muted p-0 me-2"
+                       (click)="$event.stopPropagation()"
+                       aria-label="Ver en Contactos"
+                       title="Ver en Contactos">👤</a>
+                  }
                   <button class="btn btn-link btn-sm text-muted p-0"
                           (click)="openEditarParticipante(p); $event.stopPropagation()"
                           aria-label="Editar participante">✏️</button>
@@ -262,6 +269,13 @@
               <div class="text-muted small mt-1">
                 💵 {{ p.montoPagado | currency:'COP':'symbol-narrow':'1.0-0':'es-CO' }}
               </div>
+            }
+            @if (p.contactoId) {
+              <a [routerLink]="['/contactos', p.contactoId]"
+                 class="text-decoration-none small d-block mt-1"
+                 (click)="$event.stopPropagation()">
+                👤 Ver en Contactos
+              </a>
             }
           </div>
         </div>

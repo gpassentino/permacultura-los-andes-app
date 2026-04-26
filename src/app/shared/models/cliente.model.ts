@@ -27,10 +27,11 @@ export interface DocumentoLink {
 
 export interface Cliente {
   id?: string;
-  nombre: string;
+  contactoId: string;
+  nombre: string;             // denormalized snapshot of Contacto.name
   tipoProyecto: TipoProyecto | '';
   municipio: string;
-  whatsapp: string;
+  whatsapp: string;           // denormalized snapshot of Contacto.phone
   fechaUltimoContacto: Date | null;
   fechaEstimadaInicio: Date | null;
   notas: string;
@@ -45,6 +46,7 @@ export interface Cliente {
 
 export interface FirestoreCliente {
   id: string;
+  contactoId?: string;
   nombre: string;
   tipoProyecto: TipoProyecto | '';
   municipio: string;

@@ -139,7 +139,7 @@
         }
 
         <!-- Kanban link -->
-        @if (contacto()!.kanbanCardId) {
+        @if (contacto()!.kanbanCardIds.length > 0) {
           <div class="info-section mb-3">
             <div class="info-label">Tablero de Clientes</div>
             <div class="mt-1">
@@ -198,7 +198,7 @@
               @for (id of contacto()!.academiaHistory!.completedTalleres; track id) {
                 <li>
                   <a [routerLink]="['/academia', id]" class="text-primary small">
-                    🎓 {{ id }}
+                    🎓 {{ tallerName(id) }}
                   </a>
                 </li>
               }
@@ -216,7 +216,7 @@
               @for (id of contacto()!.academiaHistory!.interestedTalleres; track id) {
                 <li>
                   <a [routerLink]="['/academia', id]" class="text-primary small">
-                    ⭐ {{ id }}
+                    ⭐ {{ tallerName(id) }}
                   </a>
                 </li>
               }

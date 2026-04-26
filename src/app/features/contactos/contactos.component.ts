@@ -6,7 +6,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 
-import { ContactoService } from '../../services/contacto.service';
+import { ContactoService, ContactoLinkedError } from '../../services/contacto.service';
 import { CsvExportService, CsvColumn } from '../../services/csv-export.service';
 import {
   Contacto,
@@ -138,8 +138,22 @@ export class ContactosComponent {
       this.error.set(null);
       await this.contactoService.deleteContacto(id);
       this.closeModal();
-    } catch {
-      this.error.set('Error al eliminar el contacto. Intente de nuevo.');
+    } catch (e) {
+      if (e instanceof ContactoLinkedError) {
+        const parts: string[] = [];
+        if (e.counts.clientes > 0) {
+          parts.push(`${e.counts.clientes} tarjeta(s) en el Tablero`);
+        }
+        if (e.counts.participantes > 0) {
+          parts.push(`${e.counts.participantes} inscripción(es) en Academia`);
+        }
+        this.error.set(
+          `No se puede eliminar: el contacto tiene ${parts.join(' y ')}. ` +
+          `Elimine esos registros primero.`
+        );
+      } else {
+        this.error.set('Error al eliminar el contacto. Intente de nuevo.');
+      }
     }
   }
 

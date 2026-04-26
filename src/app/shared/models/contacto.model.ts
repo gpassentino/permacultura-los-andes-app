@@ -89,12 +89,13 @@ export interface AcademiaHistory {
 export interface Contacto {
   id?: string;
   phone: string;
+  normalizedPhone: string;
   name: string;
   whatsappLabel: WhatsAppLabel;
   businessTypes: TipoNegocio[];
   status: EstadoContacto;
   location: ContactoLocation;
-  kanbanCardId?: string;
+  kanbanCardIds: string[];
   academiaHistory?: AcademiaHistory;
   notas?: string;
   createdAt: Date;
@@ -106,12 +107,13 @@ export interface Contacto {
 export interface FirestoreContacto {
   id: string;
   phone: string;
+  normalizedPhone: string;
   name: string;
   whatsappLabel: WhatsAppLabel;
   businessTypes: TipoNegocio[];
   status: EstadoContacto;
   location: ContactoLocation;
-  kanbanCardId?: string;
+  kanbanCardIds?: string[];
   academiaHistory?: AcademiaHistory;
   notas?: string;
   createdAt: { toDate(): Date } | null;

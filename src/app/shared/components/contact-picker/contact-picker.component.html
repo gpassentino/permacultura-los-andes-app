@@ -1,0 +1,74 @@
+@if (selected(); as s) {
+  <!-- Selected state: show pill with name/phone + change button -->
+  <div class="d-flex align-items-center gap-2 p-2 border rounded bg-light">
+    <span class="fs-5">
+      @for (t of s.businessTypes; track t) {
+        {{ TIPO_NEGOCIO_ICON[t] }}
+      }
+    </span>
+    <div class="flex-grow-1">
+      <div class="fw-semibold">{{ s.name }}</div>
+      <div class="small text-muted">{{ s.phone }}</div>
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clear()">
+      Cambiar
+    </button>
+  </div>
+} @else {
+  <!-- Search state -->
+  <div class="position-relative">
+    <input type="text"
+           class="form-control"
+           [ngModel]="query()"
+           (ngModelChange)="query.set($event)"
+           placeholder="Buscar contacto por nombre o teléfono…"
+           autocomplete="off">
+
+    @if (loading()) {
+      <div class="text-muted small mt-2">Cargando contactos…</div>
+    } @else if (query().trim()) {
+      <div class="list-group mt-2" style="max-height: 280px; overflow-y: auto;">
+        @for (c of filtered(); track c.id) {
+          <button type="button"
+                  class="list-group-item list-group-item-action d-flex align-items-center gap-2"
+                  (click)="pick(c)">
+            <span class="fs-5">
+              @for (t of c.businessTypes; track t) {
+                {{ TIPO_NEGOCIO_ICON[t] }}
+              }
+            </span>
+            <div class="flex-grow-1 text-start">
+              <div class="fw-semibold">{{ c.name }}</div>
+              <div class="small text-muted">{{ c.phone }}</div>
+            </div>
+          </button>
+        } @empty {
+          <div class="text-muted small p-2">
+            No hay contactos que coincidan con "{{ query() }}".
+          </div>
+        }
+      </div>
+    }
+
+    <!-- + Nuevo contacto always available -->
+    <button type="button"
+            class="btn btn-link p-0 mt-2"
+            (click)="openNuevo()">
+      + Nuevo contacto
+    </button>
+  </div>
+}
+
+<!-- + Nuevo contacto modal (overlay) -->
+@if (showNuevoModal()) {
+  <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <app-contacto-form
+          [contacto]="null"
+          (cerrar)="closeNuevo()"
+          (guardar)="onNuevoGuardar($event)" />
+      </div>
+    </div>
+  </div>
+}

@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed, ChangeDetectionStrategy } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { switchMap } from 'rxjs';
@@ -10,7 +10,7 @@ import { ParticipanteModalComponent } from './participante-modal/participante-mo
 
 @Component({
   selector: 'app-taller-detalle',
-  imports: [CurrencyPipe, DatePipe, ParticipanteModalComponent],
+  imports: [CurrencyPipe, DatePipe, RouterLink, ParticipanteModalComponent],
   templateUrl: './taller-detalle.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })

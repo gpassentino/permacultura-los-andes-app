@@ -65,6 +65,7 @@ export class ClienteService {
   private fromFirestore(data: FirestoreCliente): Cliente {
     return {
       id:                  data.id,
+      contactoId:          data.contactoId ?? '',
       nombre:              data.nombre ?? '',
       tipoProyecto:        data.tipoProyecto ?? '',
       municipio:           data.municipio ?? '',

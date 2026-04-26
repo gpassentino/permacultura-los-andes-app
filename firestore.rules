@@ -23,6 +23,12 @@ service cloud.firestore {
       }
     }
 
+    // CollectionGroup query support — needed for fan-out from a Contacto edit
+    // to all linked Participante docs across talleres (search by contactoId).
+    match /{path=**}/participantes/{participanteId} {
+      allow read: if isAuthorized();
+    }
+
     match /contacts/{contactId} {
       allow read, write: if isAuthorized();
       match /messages/{messageId} {

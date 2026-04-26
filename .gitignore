@@ -43,9 +43,9 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 
-# Firebase environment files — contain API keys, never commit
-src/environments/environment.ts
-src/environments/environment.prod.ts
+# Firebase web client config (apiKey etc.) is NOT a secret — it's a public
+# identifier. Security comes from Firestore rules + Auth authorized domains.
+# Both environment files are committed so CI/CD can build the app.
 
 # Firebase CLI local cache (created by `firebase deploy`)
 .firebase/

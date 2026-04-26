@@ -4,9 +4,10 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { switchMap } from 'rxjs';
+import { switchMap, of } from 'rxjs';
 
 import { ContactoService, ContactoLinkedError } from '../../../services/contacto.service';
+import { ClienteService } from '../../../services/cliente.service';
 import { TallerService } from '../../../services/taller.service';
 import {
   Contacto,
@@ -25,6 +26,7 @@ import { MessageHistoryComponent } from '../message-history/message-history.comp
 })
 export class ContactoDetalleComponent {
   private contactoService = inject(ContactoService);
+  private clienteService  = inject(ClienteService);
   private tallerService   = inject(TallerService);
   private route           = inject(ActivatedRoute);
   private router          = inject(Router);
@@ -54,6 +56,17 @@ export class ContactoDetalleComponent {
     }
     return map;
   });
+
+  // Linked Kanban cards for this contact (one button per card)
+  readonly linkedClientes = toSignal(
+    this.route.paramMap.pipe(
+      switchMap(params => {
+        const id = params.get('id');
+        return id ? this.clienteService.getClientesByContacto(id) : of([]);
+      })
+    ),
+    { initialValue: [] }
+  );
 
   // ── Active tab ──────────────────────────────────────────────────────────────
   readonly activeTab = signal<'info' | 'mensajes' | 'academia'>('info');

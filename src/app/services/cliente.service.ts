@@ -2,7 +2,7 @@ import { Injectable, inject, Injector, runInInjectionContext } from '@angular/co
 import {
   Firestore, collection, collectionData,
   addDoc, updateDoc, deleteDoc, doc,
-  serverTimestamp, Timestamp, query, orderBy
+  serverTimestamp, Timestamp, query, orderBy, where
 } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
 import { Observable, map } from 'rxjs';
@@ -18,6 +18,13 @@ export class ClienteService {
 
   getClientes(): Observable<Cliente[]> {
     const q = query(this.col, orderBy('creadoEn', 'desc'));
+    return collectionData(q, { idField: 'id' }).pipe(
+      map(docs => (docs as FirestoreCliente[]).map(d => this.fromFirestore(d)))
+    );
+  }
+
+  getClientesByContacto(contactoId: string): Observable<Cliente[]> {
+    const q = query(this.col, where('contactoId', '==', contactoId));
     return collectionData(q, { idField: 'id' }).pipe(
       map(docs => (docs as FirestoreCliente[]).map(d => this.fromFirestore(d)))
     );

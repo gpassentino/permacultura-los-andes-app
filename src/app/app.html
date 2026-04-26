@@ -1,9 +1,12 @@
 @if (user()) {
   <!-- ── Desktop top navbar ── -->
   <nav class="navbar navbar-expand-md px-3 d-none d-md-flex align-items-center top-navbar">
-    <a class="navbar-brand fw-bold text-primary d-flex align-items-center gap-2 text-decoration-none"
-       routerLink="/tablero">
-      🌿 Permacultura Los Andes
+    <a class="navbar-brand d-flex align-items-center text-decoration-none"
+       routerLink="/tablero"
+       aria-label="Permacultura Los Andes">
+      <img src="/assets/logo/permacultura-los-andes.png"
+           alt="Permacultura Los Andes"
+           class="navbar-logo">
     </a>
     <ul class="navbar-nav me-auto ms-3 d-flex flex-row gap-1">
       <li class="nav-item">

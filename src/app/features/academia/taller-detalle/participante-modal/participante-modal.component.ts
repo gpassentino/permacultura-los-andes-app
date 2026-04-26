@@ -6,7 +6,6 @@ import { Participante, COMO_NOS_CONOCIO_OPCIONES } from '../../../../shared/mode
   selector: 'app-participante-modal',
   imports: [ReactiveFormsModule],
   templateUrl: './participante-modal.component.html',
-  styleUrl: './participante-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ParticipanteModalComponent implements OnInit {

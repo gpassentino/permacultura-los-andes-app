@@ -20,7 +20,6 @@ import { MessageHistoryComponent } from '../message-history/message-history.comp
   selector: 'app-contacto-detalle',
   imports: [DatePipe, DecimalPipe, RouterLink, ContactoFormComponent, MessageHistoryComponent],
   templateUrl: './contacto-detalle.component.html',
-  styleUrl: './contacto-detalle.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ContactoDetalleComponent {

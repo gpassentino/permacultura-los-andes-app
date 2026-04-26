@@ -1,4 +1,5 @@
 @use 'sass:color';
+@use 'theme' as t;
 
 // ============================================================
 // Permacultura Los Andes — Bootstrap 5 Theme Overrides
@@ -6,26 +7,26 @@
 // ============================================================
 
 // 1. Customize Bootstrap variables BEFORE loading Bootstrap
-$primary:       #2d6a4f;   // forest green
-$secondary:     #c96b3a;   // terracotta
-$success:       #52b788;   // sage green
-$warning:       #e9c46a;   // warm gold
-$danger:        #ae2012;   // deep red
-$info:          #74c69d;   // light green
+$primary:       t.$color-primary;
+$secondary:     t.$color-secondary;
+$success:       t.$color-success;
+$warning:       t.$color-warning;
+$danger:        t.$color-danger;
+$info:          t.$color-info;
 
-$light:         #f5ebe0;   // warm beige
-$dark:          #2d2d2d;   // dark charcoal
+$light:         t.$color-light;
+$dark:          t.$color-dark;
 
-$body-bg:       #faf6f0;   // off-white warm
-$body-color:    #3a3226;   // dark warm brown
+$body-bg:       t.$color-bg;
+$body-color:    t.$color-body;
 
 $font-family-base: 'Segoe UI', system-ui, -apple-system, sans-serif;
 
 // Card & border radius
-$border-radius:       0.5rem;
-$border-radius-lg:    0.75rem;
-$card-border-color:   #d4c5b0;
-$card-bg:             #fffcf8;
+$border-radius:       t.$radius-sm;
+$border-radius-lg:    t.$radius-md;
+$card-border-color:   t.$color-border;
+$card-bg:             t.$color-surface;
 
 // Badges / chips
 $badge-font-size:   0.75em;
@@ -36,7 +37,19 @@ $badge-padding-x:   0.65em;
 // stylelint-disable-next-line import/no-deprecated
 @import 'bootstrap/scss/bootstrap';
 
-// 3. Global utility styles
+// 3. Import design system partials (must come after Bootstrap @import)
+// stylelint-disable-next-line import/no-deprecated
+@import 'components';
+@import 'layout';
+@import 'shared';
+@import 'tablero';
+@import 'academia';
+@import 'contactos';
+@import 'contacto-detalle';
+@import 'messages';
+@import 'modals';
+
+// 4. Global utility styles
 body {
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -45,7 +58,7 @@ body {
 .fab {
   position: fixed;
   bottom: 5rem;
-  right: 1.25rem;
+  right: t.$space-xl;
   width: 3.5rem;
   height: 3.5rem;
   border-radius: 50%;
@@ -53,19 +66,19 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  z-index: 1040;
+  box-shadow: t.$shadow-fab;
+  z-index: t.$z-fab;
   border: none;
   cursor: pointer;
-  background-color: $secondary;
-  color: #fff;
+  background-color: t.$color-secondary;
+  color: t.$color-white;
   transition: transform 0.2s, box-shadow 0.2s;
 
   &:hover, &:focus {
     transform: scale(1.08);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-    background-color: color.adjust($secondary, $lightness: -8%);
-    color: #fff;
+    background-color: color.adjust(t.$color-secondary, $lightness: -8%);
+    color: t.$color-white;
   }
 }
 
@@ -75,9 +88,9 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 1030;
-  background: #fff;
-  border-top: 1px solid #d4c5b0;
+  z-index: t.$z-bottom-nav;
+  background: t.$color-white;
+  border-top: 1px solid t.$color-border;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
@@ -87,33 +100,33 @@ body {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  gap: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background: $light;
-  border-bottom: 1px solid #d4c5b0;
+  gap: t.$space-sm;
+  padding: t.$space-sm t.$space-md;
+  background: t.$color-light;
+  border-bottom: 1px solid t.$color-border;
 
   &::-webkit-scrollbar { display: none; }
 
   .nav-pill-tab {
     white-space: nowrap;
-    padding: 0.4rem 1rem;
+    padding: 0.4rem t.$space-lg;
     border-radius: 2rem;
-    border: 1px solid #d4c5b0;
-    background: #fff;
-    color: $body-color;
+    border: 1px solid t.$color-border;
+    background: t.$color-white;
+    color: t.$color-body;
     font-size: 0.85rem;
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
 
     &.active {
-      background: $primary;
-      color: #fff;
-      border-color: $primary;
+      background: t.$color-primary;
+      color: t.$color-white;
+      border-color: t.$color-primary;
     }
   }
 }
 
-// FAB — on mobile, sit above the bottom nav (4.5rem) + some breathing room
+// FAB — on mobile, sit above the bottom nav + breathing room
 @media (max-width: 767px) {
   .fab {
     bottom: 5.5rem;

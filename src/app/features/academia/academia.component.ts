@@ -11,7 +11,6 @@ import { TallerModalComponent } from './taller-modal/taller-modal.component';
   selector: 'app-academia',
   imports: [CurrencyPipe, DatePipe, StatCardComponent, TallerModalComponent],
   templateUrl: './academia.component.html',
-  styleUrl: './academia.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AcademiaComponent {

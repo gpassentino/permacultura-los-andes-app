@@ -13,7 +13,6 @@ import {
   selector: 'app-contacto-form',
   imports: [ReactiveFormsModule],
   templateUrl: './contacto-form.component.html',
-  styleUrl: './contacto-form.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ContactoFormComponent implements OnInit {

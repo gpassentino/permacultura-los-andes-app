@@ -1,0 +1,108 @@
+@use 'theme' as t;
+
+// ── Contact list ──────────────────────────────────────────────
+.contact-list {
+  padding-top: t.$space-sm;
+}
+
+.contact-card {
+  cursor: pointer;
+  border-left: 4px solid t.$color-primary;
+  background: t.$color-surface;
+  transition: t.$transition-card;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: t.$shadow-card-sm;
+  }
+
+  &:active { transform: scale(0.99); }
+}
+
+// ── Avatar ────────────────────────────────────────────────────
+.contact-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, t.$color-primary, t.$color-success);
+  color: t.$color-white;
+  font-weight: 700;
+  font-size: t.$font-size-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.contact-name { font-size: t.$font-size-md; }
+
+// ── Search row ────────────────────────────────────────────────
+.search-row {
+  background: t.$color-bg;
+  border-bottom: 1px solid t.$color-border-light;
+  padding-top: t.$space-sm;
+}
+
+.status-select {
+  max-width: 160px;
+  flex-shrink: 0;
+}
+
+// ── Filter chips row ──────────────────────────────────────────
+.filter-chips {
+  border-bottom: 1px solid t.$color-border-light;
+  overflow-x: auto;
+  flex-wrap: nowrap !important;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+// ── Action buttons ────────────────────────────────────────────
+.action-btn {
+  font-size: t.$font-size-md;
+  opacity: 0.45;
+  line-height: 1;
+  transition: opacity t.$transition-fast;
+
+  .contact-card:hover & { opacity: 1; }
+}
+
+// ── Business type toggle buttons (contacto-form) ───────────────
+.tipo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: t.$radius-pill;
+  border: 1.5px solid t.$color-border;
+  background: t.$color-white;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: t.$color-text-chip;
+  cursor: pointer;
+  transition: all t.$transition-fast;
+
+  &:hover {
+    border-color: t.$color-primary;
+    color: t.$color-primary;
+  }
+
+  &--active {
+    background: t.$color-primary;
+    border-color: t.$color-primary;
+    color: t.$color-white;
+
+    &:hover {
+      background: t.$color-primary-dark;
+      border-color: t.$color-primary-dark;
+      color: t.$color-white;
+    }
+  }
+}
+
+// ── Mobile tweaks ─────────────────────────────────────────────
+@media (max-width: 767px) {
+  .page-header h1 { font-size: 1.1rem; }
+  .contact-card .card-body { padding: 0.6rem t.$space-md; }
+  .status-select { max-width: 120px; font-size: t.$font-size-sm; }
+}

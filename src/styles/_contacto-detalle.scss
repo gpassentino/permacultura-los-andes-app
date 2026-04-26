@@ -1,0 +1,58 @@
+@use 'theme' as t;
+
+// ── Quick actions bar ─────────────────────────────────────────
+.quick-actions {
+  background: t.$color-bg;
+  border-bottom: 1px solid t.$color-border-light;
+  overflow-x: auto;
+  flex-wrap: nowrap !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+// ── Tabs ──────────────────────────────────────────────────────
+.tab-nav {
+  background: t.$color-white;
+
+  .nav-link {
+    font-size: t.$font-size-sm;
+    padding: t.$space-sm t.$space-md;
+    color: t.$color-text-muted;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+
+    &.active {
+      color: t.$color-primary;
+      border-bottom-color: t.$color-primary;
+      font-weight: 600;
+      background: transparent;
+    }
+
+    &:hover:not(.active) {
+      color: t.$color-primary;
+      background: transparent;
+    }
+  }
+}
+
+// ── Info sections ─────────────────────────────────────────────
+.info-section {
+  border-bottom: 1px solid t.$color-border-faint;
+  padding-bottom: t.$space-md;
+
+  &:last-child { border-bottom: none; }
+}
+
+.info-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: t.$letter-spacing-wide;
+  color: t.$color-text-label;
+}
+
+@media (max-width: 767px) {
+  .detalle-header h1 { font-size: t.$font-size-lg; }
+}

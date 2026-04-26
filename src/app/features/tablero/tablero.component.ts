@@ -17,7 +17,6 @@ import { ClienteModalComponent } from './cliente-modal/cliente-modal.component';
     ClienteCardComponent, ClienteModalComponent
   ],
   templateUrl: './tablero.component.html',
-  styleUrl: './tablero.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TableroComponent {

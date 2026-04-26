@@ -5,7 +5,6 @@ import { AuthService } from '../auth.service';
   selector: 'app-login',
   imports: [],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LoginComponent {

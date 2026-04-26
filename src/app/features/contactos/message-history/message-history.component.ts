@@ -13,7 +13,6 @@ import { WhatsAppMessage } from '../../../shared/models/contacto.model';
   selector: 'app-message-history',
   imports: [DatePipe, ReactiveFormsModule],
   templateUrl: './message-history.component.html',
-  styleUrl: './message-history.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MessageHistoryComponent {

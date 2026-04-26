@@ -1,0 +1,103 @@
+@use 'theme' as t;
+
+// ── Top navbar (desktop) ──────────────────────────────────────
+.top-navbar {
+  background-color: t.$color-light;
+  border-bottom: 1px solid t.$color-border;
+  min-height: 56px;
+}
+
+// ── App shell ─────────────────────────────────────────────────
+.main-with-bottom-nav {
+  padding-bottom: 4.5rem;
+
+  @media (min-width: 768px) {
+    padding-bottom: 0;
+  }
+}
+
+.bottom-nav-item {
+  color: t.$color-text-muted;
+  font-size: 0.7rem;
+  min-width: 64px;
+  border: none;
+  background: none;
+
+  &.active { color: t.$color-primary; }
+}
+
+.nav-icon { font-size: 1.3rem; }
+
+// ── Login page ────────────────────────────────────────────────
+.login-page {
+  background: linear-gradient(135deg, #e8f5e9 0%, #f5ebe0 50%, #e8f5e9 100%);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  border-radius: t.$radius-lg;
+  border: 1px solid t.$color-border;
+  background: t.$color-surface;
+}
+
+.logo-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, t.$color-primary, t.$color-success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  box-shadow: 0 4px 12px rgba(45, 106, 79, 0.3);
+}
+
+.logo-leaf {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.btn-google {
+  background-color: t.$color-white;
+  color: #3c4043;
+  border: 1px solid #dadce0;
+  border-radius: t.$radius-sm;
+  padding: 0.625rem t.$space-lg;
+  font-size: t.$font-size-md;
+  font-weight: 500;
+  transition: background-color 0.15s, box-shadow 0.15s;
+
+  &:hover:not(:disabled) {
+    background-color: #f8f9fa;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+// ── Page header (academia, contactos list views) ──────────────
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: t.$space-md t.$space-lg t.$space-sm;
+}
+
+// ── Detalle header (shared by contacto-detalle & taller-detalle)
+.detalle-header {
+  border-bottom: 1px solid t.$color-border-light;
+  background: t.$color-bg;
+  min-height: 64px;
+}
+
+.back-btn {
+  font-size: t.$font-size-sm;
+  text-decoration: none;
+  flex-shrink: 0;
+
+  &:hover { color: t.$color-primary !important; }
+}

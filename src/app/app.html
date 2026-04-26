@@ -1,7 +1,6 @@
 @if (user()) {
   <!-- ── Desktop top navbar ── -->
-  <nav class="navbar navbar-expand-md px-3 d-none d-md-flex align-items-center"
-       style="background-color: #f5ebe0; border-bottom: 1px solid #d4c5b0; min-height: 56px;">
+  <nav class="navbar navbar-expand-md px-3 d-none d-md-flex align-items-center top-navbar">
     <a class="navbar-brand fw-bold text-primary d-flex align-items-center gap-2 text-decoration-none"
        routerLink="/tablero">
       🌿 Permacultura Los Andes
@@ -50,24 +49,24 @@
     <a routerLink="/tablero"
        routerLinkActive="active"
        class="bottom-nav-item d-flex flex-column align-items-center text-decoration-none gap-1 py-2">
-      <span style="font-size: 1.3rem;">🌿</span>
+      <span class="nav-icon">🌿</span>
       <small>Tablero</small>
     </a>
     <a routerLink="/academia"
        routerLinkActive="active"
        class="bottom-nav-item d-flex flex-column align-items-center text-decoration-none gap-1 py-2">
-      <span style="font-size: 1.3rem;">🎓</span>
+      <span class="nav-icon">🎓</span>
       <small>Academia</small>
     </a>
     <a routerLink="/contactos"
        routerLinkActive="active"
        class="bottom-nav-item d-flex flex-column align-items-center text-decoration-none gap-1 py-2">
-      <span style="font-size: 1.3rem;">📱</span>
+      <span class="nav-icon">📱</span>
       <small>Contactos</small>
     </a>
     <button class="bottom-nav-item btn btn-link d-flex flex-column align-items-center gap-1 py-2 text-decoration-none"
             (click)="authService.cerrarSesion()">
-      <span style="font-size: 1.3rem;">🚪</span>
+      <span class="nav-icon">🚪</span>
       <small>Salir</small>
     </button>
   </nav>

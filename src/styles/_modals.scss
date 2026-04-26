@@ -1,0 +1,34 @@
+@use 'theme' as t;
+
+// ── Modal overlay / backdrop ──────────────────────────────────
+.modal-overlay      { z-index: t.$z-modal; }
+.modal-backdrop-custom { z-index: t.$z-backdrop; }
+
+// ── Scrollable modal body ─────────────────────────────────────
+.modal-body {
+  max-height: 72vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+// ── Required field marker ─────────────────────────────────────
+.required-label::after {
+  content: ' *';
+  color: t.$color-danger;
+}
+
+// ── Documento chip (cliente-modal) ────────────────────────────
+.documento-chip {
+  background-color: t.$color-wa-badge-bg;
+  color: t.$color-primary;
+  border: 1px solid #a5d6a7;
+  border-radius: t.$radius-lg;
+  font-size: 0.8rem;
+  padding: 0.3em 0.75em;
+  transition: background-color t.$transition-fast;
+
+  &:hover {
+    background-color: #c8e6c9;
+    color: #1b5e20;
+  }
+}

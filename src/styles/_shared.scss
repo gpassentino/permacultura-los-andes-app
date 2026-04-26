@@ -1,0 +1,101 @@
+@use 'theme' as t;
+
+// ── Stat card ─────────────────────────────────────────────────
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 130px;
+  padding: 0.85rem 1.1rem;
+  border-radius: t.$radius-md;
+  text-align: center;
+  background: t.$color-surface;
+  border: 1px solid t.$color-border;
+  flex-shrink: 0;
+  gap: 0.1rem;
+
+  &__icon {
+    font-size: 1.4rem;
+    line-height: 1;
+    margin-bottom: 0.15rem;
+  }
+
+  &__value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  &__label {
+    font-size: 0.72rem;
+    color: t.$color-text-muted;
+    text-transform: uppercase;
+    letter-spacing: t.$letter-spacing-label;
+    line-height: 1.3;
+  }
+
+  &--primary { border-left: 4px solid t.$color-primary; .stat-card__value { color: t.$color-primary; } }
+  &--success  { border-left: 4px solid t.$color-success; .stat-card__value { color: t.$color-success-dark; } }
+  &--warning  { border-left: 4px solid t.$color-warning; .stat-card__value { color: t.$color-reminder-warning-text; } }
+  &--info     { border-left: 4px solid t.$color-info;    .stat-card__value { color: t.$color-info-dark; } }
+}
+
+// ── Cliente card (Kanban) ─────────────────────────────────────
+.cliente-card {
+  cursor: pointer;
+  transition: t.$transition-card;
+  border-left: 3px solid t.$color-primary;
+  background: t.$color-surface;
+  border-radius: t.$radius-sm;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: t.$shadow-card;
+  }
+
+  &:active { transform: scale(0.98); }
+
+  &.recordatorio-vencido {
+    border-left-color: t.$color-danger;
+    background: #fff8f8;
+  }
+
+  &.recordatorio-hoy,
+  &.recordatorio-pronto {
+    border-left-color: t.$color-warning;
+  }
+
+  &.recordatorio-hoy { background: #fffdf5; }
+}
+
+.nombre-cliente {
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+
+.tipo-badge {
+  font-size: t.$font-size-xs;
+  font-weight: 500;
+  padding: 0.2em 0.55em;
+  border-radius: 0.9rem;
+}
+
+.badge-tipo-paisajismo  { background-color: t.$color-primary;    color: t.$color-white; }
+.badge-tipo-agua        { background-color: t.$color-interested; color: t.$color-white; }
+.badge-tipo-bosque      { background-color: t.$color-success;    color: t.$color-white; }
+.badge-tipo-taller      { background-color: t.$color-warning;    color: t.$color-body; }
+.badge-tipo-consultoria { background-color: #8d6e63;             color: t.$color-white; }
+.badge-tipo-otro        { background-color: #9e9e9e;             color: t.$color-white; }
+
+.municipio,
+.dias-contacto { font-size: 0.78rem; }
+
+.recordatorio-badge { font-size: t.$font-size-sm; }
+
+.whatsapp-link {
+  opacity: 0.85;
+  transition: opacity t.$transition-fast;
+
+  &:hover { opacity: 1; }
+}

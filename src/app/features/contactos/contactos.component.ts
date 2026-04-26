@@ -22,7 +22,6 @@ type QuickFilter = 'todos' | TipoNegocio | 'leads' | 'clientes';
   selector: 'app-contactos',
   imports: [DatePipe, FormsModule, ContactoFormComponent],
   templateUrl: './contactos.component.html',
-  styleUrl: './contactos.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ContactosComponent {

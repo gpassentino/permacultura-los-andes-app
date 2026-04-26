@@ -6,7 +6,6 @@ import { RecordatorioService } from '../../../services/recordatorio.service';
   selector: 'app-cliente-card',
   imports: [],
   templateUrl: './cliente-card.component.html',
-  styleUrl: './cliente-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ClienteCardComponent {

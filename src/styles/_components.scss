@@ -1,0 +1,149 @@
+@use 'theme' as t;
+
+// ============================================================
+// Permacultura Los Andes — Shared Component Patterns
+// ============================================================
+
+// ── Stats banner (horizontal scrollable row) ──────────────────
+.stats-banner {
+  display: flex;
+  gap: t.$space-md;
+  padding: t.$space-sm t.$space-lg;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  border-bottom: 1px solid t.$color-border;
+  background: t.$color-bg;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+// ── Stat chip (inline number + label) ────────────────────────
+.stat-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: t.$color-white;
+  border: 1px solid t.$color-border;
+  border-radius: t.$radius-md;
+  padding: 0.4rem 0.9rem;
+  min-width: 64px;
+  flex-shrink: 0;
+
+  .stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: t.$color-dark;
+  }
+
+  .stat-label {
+    font-size: t.$font-size-xs;
+    text-transform: uppercase;
+    letter-spacing: t.$letter-spacing-label;
+    color: t.$color-text-warm;
+  }
+
+  &--nm { border-color: t.$color-whatsapp;  .stat-value { color: t.$color-whatsapp; } }
+  &--ld { border-color: t.$color-secondary; .stat-value { color: t.$color-secondary; } }
+  &--cl { border-color: t.$color-primary;   .stat-value { color: t.$color-primary; } }
+}
+
+// ── Filter / toggle chips ─────────────────────────────────────
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.75rem;
+  border-radius: t.$radius-pill;
+  border: 1.5px solid t.$color-border;
+  background: t.$color-white;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: t.$color-text-chip;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all t.$transition-fast;
+  flex-shrink: 0;
+
+  &:hover { border-color: t.$color-primary; color: t.$color-primary; }
+
+  &--active {
+    background: t.$color-primary;
+    border-color: t.$color-primary;
+    color: t.$color-white;
+  }
+
+  &--paisajismo.chip--active { background: t.$color-primary;      border-color: t.$color-primary; }
+  &--academia.chip--active   { background: t.$color-success;      border-color: t.$color-success; }
+  &--leads.chip--active      { background: t.$color-secondary;    border-color: t.$color-secondary; }
+  &--clientes.chip--active   { background: t.$color-primary-light; border-color: t.$color-primary-light; }
+  &--proveedor.chip--active  { background: t.$color-sin-respuesta; border-color: t.$color-sin-respuesta; }
+}
+
+// ── Status badges ─────────────────────────────────────────────
+.badge-status-nm { background-color: t.$color-whatsapp;    color: t.$color-white; }
+.badge-status-in { background-color: t.$color-interested;  color: t.$color-white; }
+.badge-status-ld { background-color: t.$color-lead;        color: t.$color-white; }
+.badge-status-cl { background-color: t.$color-cliente;     color: t.$color-white; }
+.badge-status-sr { background-color: t.$color-sin-respuesta; color: t.$color-white; }
+
+// ── WhatsApp label badge ──────────────────────────────────────
+.badge-wa-label {
+  background-color: t.$color-wa-badge-bg;
+  color: t.$color-wa-badge-text;
+  border: 1px solid t.$color-wa-badge-border;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+// ── Taller estado badges ──────────────────────────────────────
+.badge-proximo    { background-color: t.$color-interested;  color: t.$color-white; }
+.badge-en-curso   { background-color: t.$color-success;     color: t.$color-white; }
+.badge-finalizado { background-color: t.$color-sin-respuesta; color: t.$color-white; }
+.badge-cancelado  { background-color: t.$color-danger;      color: t.$color-white; }
+
+// ── Modal overlay ─────────────────────────────────────────────
+.modal-overlay {
+  z-index: t.$z-modal;
+}
+
+.modal-backdrop-custom {
+  z-index: t.$z-backdrop;
+}
+
+// ── Required field label ──────────────────────────────────────
+.required-label::after {
+  content: ' *';
+  color: t.$color-danger;
+}
+
+// ── Modal body scroll ─────────────────────────────────────────
+.modal-body-scroll {
+  max-height: 72vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+// ── Section header (back button + title row) ──────────────────
+.detalle-header {
+  border-bottom: 1px solid t.$color-border-light;
+  background: t.$color-bg;
+  min-height: 64px;
+}
+
+.back-btn {
+  font-size: t.$font-size-sm;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+// ── Empty state icons ─────────────────────────────────────────
+.empty-icon-lg { font-size: 3rem;   opacity: 0.3; }
+.empty-icon-md { font-size: 2rem;   opacity: 0.3; }
+.empty-icon-sm { font-size: 1.4rem; opacity: 0.3; }
+
+// ── Utility: sub-text sizes ───────────────────────────────────
+.fs-tiny { font-size: 0.7rem; }
+
+// ── Inline badge for business types ──────────────────────────
+.badge-type { font-size: 0.8rem; }

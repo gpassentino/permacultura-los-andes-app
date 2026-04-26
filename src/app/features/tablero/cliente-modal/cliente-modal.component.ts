@@ -7,7 +7,6 @@ import { Cliente, TIPOS_PROYECTO, ESTADOS_CLIENTE, DocumentoLink } from '../../.
   selector: 'app-cliente-modal',
   imports: [ReactiveFormsModule, DatePipe],
   templateUrl: './cliente-modal.component.html',
-  styleUrl: './cliente-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ClienteModalComponent implements OnInit {

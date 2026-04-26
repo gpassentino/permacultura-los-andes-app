@@ -6,7 +6,6 @@ import { Taller, ESTADOS_TALLER } from '../../../shared/models/taller.model';
   selector: 'app-taller-modal',
   imports: [ReactiveFormsModule],
   templateUrl: './taller-modal.component.html',
-  styleUrl: './taller-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TallerModalComponent implements OnInit {

@@ -1,0 +1,98 @@
+// ============================================================
+// Permacultura Los Andes — Design Tokens
+// Earth tones: forest green, terracotta, warm beige
+// ============================================================
+
+// ── Brand colors ─────────────────────────────────────────────
+$color-primary:       #2d6a4f;   // forest green
+$color-primary-dark:  #225539;
+$color-primary-light: #1a5c3c;
+$color-secondary:     #c96b3a;   // terracotta
+$color-success:       #52b788;   // sage green
+$color-success-dark:  #1b7a4a;
+$color-warning:       #e9c46a;   // warm gold
+$color-danger:        #ae2012;   // deep red
+$color-info:          #74c69d;   // light green
+$color-info-dark:     #1b6b4a;
+
+// ── Neutral / surface colors ─────────────────────────────────
+$color-white:         #ffffff;
+$color-surface:       #fffcf8;   // warm white card surface
+$color-bg:            #faf6f0;   // off-white warm body bg
+$color-light:         #f5ebe0;   // warm beige
+$color-dark:          #2d2d2d;   // dark charcoal
+$color-body:          #3a3226;   // dark warm brown
+
+// ── Border colors ─────────────────────────────────────────────
+$color-border:        #d4c5b0;   // main border
+$color-border-light:  #e9e0d4;   // subtle border
+$color-border-faint:  #f0e8dc;   // very subtle divider
+
+// ── Text colors ───────────────────────────────────────────────
+$color-text-muted:    #6c757d;
+$color-text-warm:     #7a6950;
+$color-text-label:    #9a8570;
+$color-text-chip:     #5a4a3a;
+
+// ── Semantic / status colors ──────────────────────────────────
+$color-whatsapp:      #25d366;   // WhatsApp green
+$color-interested:    #2196f3;   // blue – interested
+$color-lead:          $color-secondary;
+$color-cliente:       $color-primary;
+$color-sin-respuesta: #6c757d;
+
+// ── Reminder / alert colors ───────────────────────────────────
+$color-reminder-danger-bg:     #fee2e2;
+$color-reminder-danger-text:   #991b1b;
+$color-reminder-danger-border: #fca5a5;
+$color-reminder-warning-bg:    #fef3c7;
+$color-reminder-warning-text:  #92400e;
+$color-reminder-warning-border:#fcd34d;
+
+// ── WhatsApp label badge ──────────────────────────────────────
+$color-wa-badge-bg:     #e8f5e9;
+$color-wa-badge-text:   $color-primary;
+$color-wa-badge-border: #b2dfdb;
+
+// ── Drag placeholder / drop ───────────────────────────────────
+$color-drop-bg:         #e8f5e9;
+
+// ── Spacing ───────────────────────────────────────────────────
+$space-xs:   0.25rem;
+$space-sm:   0.5rem;
+$space-md:   0.75rem;
+$space-lg:   1rem;
+$space-xl:   1.25rem;
+
+// ── Border radius ─────────────────────────────────────────────
+$radius-sm:   0.5rem;
+$radius-md:   0.75rem;
+$radius-lg:   1rem;
+$radius-pill: 999px;
+$radius-chip: 1.25rem;
+
+// ── Typography ────────────────────────────────────────────────
+$font-size-xs:    0.65rem;
+$font-size-sm:    0.75rem;
+$font-size-base:  0.875rem;
+$font-size-md:    0.9rem;
+$font-size-lg:    1rem;
+
+$letter-spacing-label: 0.04em;
+$letter-spacing-wide:  0.06em;
+
+// ── Shadows ───────────────────────────────────────────────────
+$shadow-card:   0 4px 12px rgba(0, 0, 0, 0.1);
+$shadow-card-sm:0 3px 10px rgba(0, 0, 0, 0.09);
+$shadow-fab:    0 4px 12px rgba(0, 0, 0, 0.25);
+$shadow-drag:   0 10px 28px rgba(0, 0, 0, 0.22);
+
+// ── Z-index ───────────────────────────────────────────────────
+$z-modal:       1050;
+$z-backdrop:    1049;
+$z-bottom-nav:  1030;
+$z-fab:         1040;
+
+// ── Transitions ───────────────────────────────────────────────
+$transition-fast: 0.15s ease;
+$transition-card: transform 0.15s ease, box-shadow 0.15s ease;

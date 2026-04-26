@@ -11,7 +11,6 @@ import { ParticipanteModalComponent } from './participante-modal/participante-mo
   selector: 'app-taller-detalle',
   imports: [CurrencyPipe, DatePipe, ParticipanteModalComponent],
   templateUrl: './taller-detalle.component.html',
-  styleUrl: './taller-detalle.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TallerDetalleComponent {

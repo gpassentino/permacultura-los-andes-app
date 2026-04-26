@@ -1,0 +1,157 @@
+@use 'theme' as t;
+
+// ── Recordatorios banner ──────────────────────────────────────
+.recordatorio-banner {
+  background: linear-gradient(90deg, #fff8e1, #fff3cd);
+  border-bottom: 1px solid #ffe082;
+  font-size: t.$font-size-sm;
+}
+
+.recordatorio-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: t.$space-xs;
+  border: none;
+  border-radius: t.$radius-chip;
+  padding: t.$space-xs 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: opacity t.$transition-fast;
+
+  &:hover { opacity: 0.85; }
+
+  &.chip-danger {
+    background-color: t.$color-reminder-danger-bg;
+    color: t.$color-reminder-danger-text;
+    border: 1px solid t.$color-reminder-danger-border;
+  }
+
+  &.chip-warning {
+    background-color: t.$color-reminder-warning-bg;
+    color: t.$color-reminder-warning-text;
+    border: 1px solid t.$color-reminder-warning-border;
+  }
+
+  .chip-label {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: t.$font-size-xs;
+    letter-spacing: 0.03em;
+    opacity: 0.75;
+    margin-right: 0.1rem;
+  }
+
+  .chip-msg { opacity: 0.75; }
+}
+
+// ── Tab nav badge ─────────────────────────────────────────────
+.tab-count {
+  background-color: rgba(0, 0, 0, 0.12);
+  color: inherit;
+  font-size: 0.7rem;
+}
+
+.nav-pill-tab.active .tab-count {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: t.$color-primary;
+}
+
+// ── Mobile column body ────────────────────────────────────────
+.mobile-column-body {
+  min-height: 200px;
+
+  &.cdk-drop-list-receiving {
+    background: rgba(45, 106, 79, 0.05);
+    border-radius: t.$radius-sm;
+  }
+}
+
+.empty-column {
+  .empty-icon {
+    font-size: 2.5rem;
+    opacity: 0.25;
+  }
+}
+
+// ── Desktop kanban board ──────────────────────────────────────
+.kanban-board {
+  height: calc(100vh - 56px); // subtract navbar height
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: t.$space-md;
+  gap: t.$space-md;
+  align-items: stretch;
+}
+
+.kanban-column {
+  width: 280px;
+  min-width: 280px;
+  flex-shrink: 0;
+}
+
+.kanban-column-header {
+  border-bottom: 2px solid t.$color-border;
+  padding-bottom: t.$space-sm;
+}
+
+.kanban-column-body {
+  overflow-y: auto;
+  flex: 1 1 auto;
+  height: 0; // flex trick: forces overflow-y to work inside flex column
+  padding: t.$space-xs 0;
+  border-radius: t.$radius-sm;
+
+  &.cdk-drop-list-dragging { background: rgba(45, 106, 79, 0.03); }
+
+  &.cdk-drop-list-receiving {
+    background: rgba(45, 106, 79, 0.07);
+    outline: 2px dashed t.$color-primary;
+    outline-offset: 3px;
+    border-radius: t.$radius-sm;
+  }
+}
+
+// ── CDK drag styles ───────────────────────────────────────────
+.cdk-drag-preview {
+  box-shadow: t.$shadow-drag;
+  opacity: 0.92;
+  border-radius: t.$radius-sm;
+  width: 272px; // cap preview width to match card
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.drag-placeholder {
+  height: 70px;
+  background: t.$color-drop-bg;
+  border: 2px dashed t.$color-primary !important;
+  border-radius: t.$radius-sm;
+  opacity: 0.6;
+}
+
+// ── Drop hint (empty columns) ─────────────────────────────────
+.drop-hint {
+  border: 2px dashed t.$color-border;
+  border-radius: t.$radius-sm;
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: t.$space-xs;
+}
+
+@media (max-width: 767px) {
+  .modal-dialog {
+    margin: 0.5rem auto;
+    max-height: calc(100vh - 1rem);
+  }
+}

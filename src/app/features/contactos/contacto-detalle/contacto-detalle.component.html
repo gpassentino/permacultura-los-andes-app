@@ -146,9 +146,12 @@
               @for (c of linkedClientes(); track c.id) {
                 <a [routerLink]="['/tablero']"
                    [queryParams]="{ clienteId: c.id }"
-                   class="btn btn-outline-primary btn-sm">
-                  🌿 {{ c.tipoProyecto || 'Proyecto' }}
-                  <span class="badge bg-secondary ms-1">{{ c.estado }}</span>
+                   class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
+                   🌿
+                   <span class="categoria-badge" [class]="categoriaBadgeClassFor(c)">
+                     {{ c.categoria }}
+                   </span>
+                   <span class="badge bg-secondary">{{ c.estado }}</span>
                 </a>
               }
             </div>

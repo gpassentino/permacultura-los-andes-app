@@ -11,7 +11,8 @@ function makeCliente(overrides: Partial<Cliente> = {}): Cliente {
   return {
     id: 'c1',
     nombre: 'Existing Client',
-    tipoProyecto: 'Consultoría',
+    categoria: 'Visita Técnica',
+    checklist: [],
     municipio: 'El Retiro',
     whatsapp: '3001234567',
     fechaUltimoContacto: new Date(2026, 3, 1),
@@ -20,7 +21,7 @@ function makeCliente(overrides: Partial<Cliente> = {}): Cliente {
     documentos: [{ label: 'Propuesta', url: 'https://drive.google.com/doc1' }],
     recordatorioFecha: null,
     recordatorioMensaje: '',
-    estado: 'Contacto Inicial',
+    estado: 'Antes',
     creadoEn: new Date(),
     creadoPor: 'test@test.com',
     actualizadoEn: new Date(),

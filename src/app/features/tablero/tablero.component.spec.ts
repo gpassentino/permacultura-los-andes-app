@@ -9,7 +9,7 @@ function makeCliente(overrides: Partial<Cliente> = {}): Cliente {
   return {
     id: '1',
     nombre: 'Test',
-    tipoProyecto: '',
+    categoria: 'Indefinido', checklist: [],
     municipio: '',
     whatsapp: '',
     fechaUltimoContacto: null,
@@ -18,7 +18,7 @@ function makeCliente(overrides: Partial<Cliente> = {}): Cliente {
     documentos: [],
     recordatorioFecha: null,
     recordatorioMensaje: '',
-    estado: 'Contacto Inicial',
+    estado: 'Antes',
     creadoEn: new Date(),
     creadoPor: '',
     actualizadoEn: new Date(),
@@ -62,16 +62,16 @@ describe('TableroComponent', () => {
   describe('clientesPorColumna', () => {
     it('should group clients by estado', () => {
       clientesSubject.next([
-        makeCliente({ id: '1', estado: 'Contacto Inicial' }),
-        makeCliente({ id: '2', estado: 'Contacto Inicial' }),
-        makeCliente({ id: '3', estado: 'En Ejecución' }),
+        makeCliente({ id: '1', estado: 'Antes' }),
+        makeCliente({ id: '2', estado: 'Antes' }),
+        makeCliente({ id: '3', estado: 'Durante' }),
       ]);
       const component = createComponent();
       const map = component.clientesPorColumna();
 
-      expect(map.get('Contacto Inicial')?.length).toBe(2);
-      expect(map.get('En Ejecución')?.length).toBe(1);
-      expect(map.get('Finalizado')?.length).toBe(0);
+      expect(map.get('Antes')?.length).toBe(2);
+      expect(map.get('Durante')?.length).toBe(1);
+      expect(map.get('Completo')?.length).toBe(0);
     });
 
     it('should have all columns even when empty', () => {

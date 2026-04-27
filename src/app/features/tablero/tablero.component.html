@@ -136,6 +136,49 @@
 
 }<!-- end @else loading -->
 
+<!-- ── "Continuar con siguiente fase" prompt ── -->
+@if (continuarPrompt(); as p) {
+  <div class="modal show d-block modal-overlay"
+       tabindex="-1"
+       role="dialog"
+       aria-modal="true"
+       (click)="cancelarContinuar()">
+    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">¿Continuar con la siguiente fase?</h5>
+          <button type="button" class="btn-close" (click)="cancelarContinuar()" aria-label="Cerrar"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-2">
+            <strong>{{ p.cliente.nombre }}</strong> · {{ p.cliente.categoria }} marcado como <strong>Completo</strong>.
+          </p>
+          @if (p.siguiente) {
+            <p class="mb-3">
+              ¿Crear nueva tarjeta de <strong>{{ p.siguiente }}</strong> en <em>Antes</em> para este contacto?
+            </p>
+          } @else {
+            <p class="mb-3 text-muted small">
+              No hay siguiente fase predefinida para esta categoría. Puedes crear otra tarjeta manualmente si quieres.
+            </p>
+          }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" (click)="cancelarContinuar()">
+            No, dejar en Completo
+          </button>
+          @if (p.siguiente) {
+            <button type="button" class="btn btn-primary" (click)="confirmarContinuar(p.siguiente)">
+              Sí, crear {{ p.siguiente }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop show modal-backdrop-custom"></div>
+}
+
 <!-- ── Modal overlay ── -->
 @if (showModal()) {
   <div class="modal show d-block modal-overlay"

@@ -57,16 +57,41 @@
     }
   </div>
 
-  <!-- ── Tipo de proyecto + Estado ── -->
+  <!-- ── Tabs: Detalles / Checklist ── -->
+  <ul class="nav nav-tabs mb-3" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button type="button" class="nav-link"
+              [class.active]="activeTab() === 'detalles'"
+              (click)="activeTab.set('detalles')">
+        Detalles
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button type="button" class="nav-link d-flex align-items-center gap-1"
+              [class.active]="activeTab() === 'checklist'"
+              (click)="activeTab.set('checklist')">
+        Checklist
+        @if (checklistProgress().total > 0) {
+          <span class="badge bg-secondary rounded-pill">
+            {{ checklistProgress().done }}/{{ checklistProgress().total }}
+          </span>
+        }
+      </button>
+    </li>
+  </ul>
+
+  @if (activeTab() === 'detalles') {
+
+  <!-- ── Categoría + Estado ── -->
   <div class="row g-3 mb-3">
     <div class="col-md-6">
-      <label class="form-label fw-semibold">Tipo de proyecto</label>
-      <select class="form-select" formControlName="tipoProyecto">
-        <option value="">— Seleccionar —</option>
-        @for (tipo of TIPOS_PROYECTO; track tipo) {
-          <option [value]="tipo">{{ tipo }}</option>
+      <label class="form-label fw-semibold required-label">Categoría</label>
+      <select class="form-select" formControlName="categoria" (change)="onCategoriaChange($event)">
+        @for (cat of CATEGORIAS_CLIENTE; track cat) {
+          <option [value]="cat">{{ cat }}</option>
         }
       </select>
+      <small class="text-muted">Define el tipo de engagement; cambiarlo reemplaza el checklist.</small>
     </div>
     <div class="col-md-6">
       <label class="form-label fw-semibold">Estado</label>
@@ -77,6 +102,20 @@
       </select>
     </div>
   </div>
+
+  @if (pendingCategoriaChange(); as pending) {
+    <div class="alert alert-warning d-flex flex-wrap gap-2 align-items-center py-2 mb-3">
+      <span class="me-auto small">
+        Cambiar a <strong>{{ pending }}</strong> reemplazará el checklist actual.
+      </span>
+      <button type="button" class="btn btn-warning btn-sm" (click)="confirmarCambioCategoria()">
+        Sí, reemplazar
+      </button>
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="cancelarCambioCategoria()">
+        Cancelar
+      </button>
+    </div>
+  }
 
   <!-- ── Fechas ── -->
   <div class="row g-3 mb-3">
@@ -160,6 +199,58 @@
       + Agregar enlace
     </button>
   </div>
+
+  }<!-- end activeTab === 'detalles' -->
+
+  @if (activeTab() === 'checklist') {
+    @if (checklistProgress().total === 0) {
+      <div class="text-muted text-center py-4">
+        <p class="mb-2">No hay items en el checklist.</p>
+        <p class="small mb-0">
+          Selecciona una categoría en <em>Detalles</em> para cargar el template,
+          o agrega items manualmente abajo.
+        </p>
+      </div>
+    }
+
+    @for (fase of FASES_CHECKLIST; track fase) {
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="text-uppercase text-muted small mb-0 fase-label">{{ fase }}</h6>
+          <button type="button" class="btn btn-link btn-sm p-0"
+                  (click)="addChecklistItem(fase)">
+            + Agregar item
+          </button>
+        </div>
+
+        @for (entry of itemsForFase(fase); track entry.index) {
+          <div class="d-flex align-items-center gap-2 py-1">
+            <input type="checkbox"
+                   class="form-check-input flex-shrink-0"
+                   [checked]="entry.item.completado"
+                   (change)="toggleChecklistItem(entry.index)">
+            <input type="text"
+                   class="form-control form-control-sm checklist-text"
+                   [class.completado]="entry.item.completado"
+                   [value]="entry.item.texto"
+                   (input)="updateChecklistItemText(entry.index, $event)"
+                   placeholder="Descripción del item">
+            <button type="button" class="btn btn-link text-danger p-0 lh-1 flex-shrink-0"
+                    (click)="removeChecklistItem(entry.index)"
+                    aria-label="Eliminar item">
+              ✕
+            </button>
+          </div>
+        }
+
+        @if (itemsForFase(fase).length === 0) {
+          <div class="text-muted small fst-italic ps-4">
+            (sin items)
+          </div>
+        }
+      </div>
+    }
+  }
 
   <!-- ── Confirm delete ── -->
   @if (confirmDelete()) {

@@ -50,6 +50,10 @@ Thumbs.db
 # Firebase CLI local cache (created by `firebase deploy`)
 .firebase/
 
+# Firebase Admin SDK service account keys — NEVER commit these
+serviceAccountKey.json
+serviceAccountKey.*.json
+
 # Local planning notes — not for version control
 TODO.md
 todo.md

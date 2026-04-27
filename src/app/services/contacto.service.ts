@@ -192,14 +192,14 @@ export class ContactoService {
 
   /**
    * Called when a contact's label becomes "LD | Paisajismo".
-   * Phase 2: will auto-create a Kanban card in "Contacto Inicial".
+   * Phase 2: will auto-create a Kanban card in "Antes" (Visita Técnica by default).
    */
   async onLeadPaisajismoCreated(_contactId: string): Promise<void> {
     // TODO (Phase 2): create Kanban card and append to kanbanCardIds on contact
   }
 
   /**
-   * Called when Kanban card moves to "Presupuesto Aprobado".
+   * Called when a Kanban card transitions to a paid stage (e.g. presupuesto aprobado).
    * Phase 2: will update contact status to "CL | Paisajismo".
    */
   async onKanbanPresupuestoAprobado(_contactId: string): Promise<void> {

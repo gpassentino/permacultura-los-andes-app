@@ -6,7 +6,7 @@ function makeCliente(recordatorioFecha: Date | null): Cliente {
   return {
     id: '1',
     nombre: 'Test',
-    tipoProyecto: '',
+    categoria: 'Indefinido', checklist: [],
     municipio: '',
     whatsapp: '',
     fechaUltimoContacto: null,
@@ -15,7 +15,7 @@ function makeCliente(recordatorioFecha: Date | null): Cliente {
     documentos: [],
     recordatorioFecha,
     recordatorioMensaje: '',
-    estado: 'Contacto Inicial',
+    estado: 'Antes',
     creadoEn: new Date(),
     creadoPor: '',
     actualizadoEn: new Date(),

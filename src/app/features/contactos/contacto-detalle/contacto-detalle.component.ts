@@ -15,6 +15,7 @@ import {
   TIPOS_NEGOCIO_LABELS, TIPO_NEGOCIO_ICON,
   TipoNegocio, EstadoContacto
 } from '../../../shared/models/contacto.model';
+import { Cliente, categoriaBadgeClass } from '../../../shared/models/cliente.model';
 import { ContactoFormComponent } from '../contacto-form/contacto-form.component';
 import { MessageHistoryComponent } from '../message-history/message-history.component';
 
@@ -173,6 +174,10 @@ export class ContactoDetalleComponent {
 
   tallerName(id: string): string {
     return this.tallerNameById().get(id) ?? 'Taller no encontrado';
+  }
+
+  categoriaBadgeClassFor(cliente: Cliente): string {
+    return categoriaBadgeClass(cliente.categoria);
   }
 
   scheduleLabel(schedule?: string): string {

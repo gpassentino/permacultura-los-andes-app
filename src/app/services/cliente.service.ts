@@ -6,7 +6,12 @@ import {
 } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
 import { Observable, map } from 'rxjs';
-import { Cliente, FirestoreCliente } from '../shared/models/cliente.model';
+import {
+  Cliente,
+  ChecklistItem,
+  FirestoreChecklistItem,
+  FirestoreCliente
+} from '../shared/models/cliente.model';
 
 @Injectable({ providedIn: 'root' })
 export class ClienteService {
@@ -60,7 +65,17 @@ export class ClienteService {
     const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(data)) {
       if (key === 'id') continue;
-      if (value instanceof Date) {
+      if (key === 'checklist' && Array.isArray(value)) {
+        result[key] = (value as ChecklistItem[]).map(item => ({
+          texto: item.texto,
+          fase: item.fase,
+          completado: item.completado,
+          completadoEn: item.completadoEn instanceof Date
+            ? Timestamp.fromDate(item.completadoEn)
+            : null,
+          completadoPor: item.completadoPor ?? '',
+        }));
+      } else if (value instanceof Date) {
         result[key] = Timestamp.fromDate(value);
       } else {
         result[key] = value;
@@ -74,7 +89,14 @@ export class ClienteService {
       id:                  data.id,
       contactoId:          data.contactoId ?? '',
       nombre:              data.nombre ?? '',
-      tipoProyecto:        data.tipoProyecto ?? '',
+      categoria:           data.categoria ?? 'Indefinido',
+      checklist:           (data.checklist ?? []).map((item: FirestoreChecklistItem) => ({
+        texto:        item.texto,
+        fase:         item.fase,
+        completado:   item.completado ?? false,
+        completadoEn: item.completadoEn?.toDate() ?? null,
+        completadoPor: item.completadoPor ?? '',
+      })),
       municipio:           data.municipio ?? '',
       whatsapp:            data.whatsapp ?? '',
       fechaUltimoContacto: data.fechaUltimoContacto?.toDate() ?? null,
@@ -83,7 +105,7 @@ export class ClienteService {
       documentos:          data.documentos ?? [],
       recordatorioFecha:   data.recordatorioFecha?.toDate() ?? null,
       recordatorioMensaje: data.recordatorioMensaje ?? '',
-      estado:              data.estado ?? 'Contacto Inicial',
+      estado:              data.estado ?? 'Antes',
       creadoEn:            data.creadoEn?.toDate() ?? new Date(),
       creadoPor:           data.creadoPor ?? '',
       actualizadoEn:       data.actualizadoEn?.toDate() ?? new Date(),

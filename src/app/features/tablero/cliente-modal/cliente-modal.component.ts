@@ -1,12 +1,24 @@
-import { Component, inject, input, output, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, input, output, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormArray, ReactiveFormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { Cliente, TIPOS_PROYECTO, ESTADOS_CLIENTE, DocumentoLink } from '../../../shared/models/cliente.model';
+import {
+  Cliente,
+  ChecklistItem,
+  CategoriaCliente,
+  CATEGORIAS_CLIENTE,
+  ESTADOS_CLIENTE,
+  FaseChecklist,
+  FASES_CHECKLIST,
+  DocumentoLink,
+  buildChecklistFromTemplate
+} from '../../../shared/models/cliente.model';
 import { Contacto } from '../../../shared/models/contacto.model';
 import { ContactoService } from '../../../services/contacto.service';
 import { ContactPickerComponent } from '../../../shared/components/contact-picker/contact-picker.component';
+
+type Tab = 'detalles' | 'checklist';
 
 @Component({
   selector: 'app-cliente-modal',
@@ -20,8 +32,9 @@ export class ClienteModalComponent implements OnInit {
   readonly guardar  = output<{ data: Partial<Cliente>; id?: string }>();
   readonly eliminar = output<string>();
 
-  readonly TIPOS_PROYECTO  = TIPOS_PROYECTO;
-  readonly ESTADOS_CLIENTE = ESTADOS_CLIENTE;
+  readonly CATEGORIAS_CLIENTE = CATEGORIAS_CLIENTE;
+  readonly ESTADOS_CLIENTE    = ESTADOS_CLIENTE;
+  readonly FASES_CHECKLIST    = FASES_CHECKLIST;
 
   private fb              = inject(FormBuilder);
   private contactoService = inject(ContactoService);
@@ -29,26 +42,45 @@ export class ClienteModalComponent implements OnInit {
   // The selected canonical Contacto (source of truth for name/phone)
   readonly contactoSeleccionado = signal<Contacto | null>(null);
 
+  // Working copy of checklist (lives outside the FormGroup since it's array-of-objects with mixed types)
+  readonly checklist = signal<ChecklistItem[]>([]);
+
+  readonly activeTab = signal<Tab>('detalles');
+
+  // Pending categoría change awaiting user confirmation (would replace existing checklist)
+  readonly pendingCategoriaChange = signal<CategoriaCliente | null>(null);
+
+  // Tracks the categoría the checklist currently reflects, so we can detect real changes.
+  // The form control value updates BEFORE (change) fires, so we can't use it as the "previous" value.
+  private currentCategoria: CategoriaCliente = 'Indefinido';
+
   // Card-specific form (no nombre/whatsapp/municipio — those come from Contacto)
   form = this.fb.group({
-    tipoProyecto:         [''],
+    categoria:            ['Indefinido' as CategoriaCliente],
     fechaUltimoContacto:  [''],
     fechaEstimadaInicio:  [''],
     notas:                [''],
     recordatorioFecha:    [''],
     recordatorioMensaje:  [''],
-    estado:               ['Contacto Inicial'],
+    estado:               ['Antes'],
     documentos:           this.fb.array([])
   });
 
   saving        = signal(false);
   confirmDelete = signal(false);
 
+  // Checklist progress for the badge in the tab header
+  readonly checklistProgress = computed(() => {
+    const items = this.checklist();
+    const done = items.filter(i => i.completado).length;
+    return { done, total: items.length };
+  });
+
   ngOnInit(): void {
     const c = this.cliente();
     if (c) {
       this.form.patchValue({
-        tipoProyecto:        c.tipoProyecto,
+        categoria:           c.categoria,
         fechaUltimoContacto: this.toDateStr(c.fechaUltimoContacto),
         fechaEstimadaInicio: this.toDateStr(c.fechaEstimadaInicio),
         notas:               c.notas,
@@ -56,6 +88,8 @@ export class ClienteModalComponent implements OnInit {
         recordatorioMensaje: c.recordatorioMensaje,
         estado:              c.estado
       });
+      this.checklist.set([...c.checklist]);
+      this.currentCategoria = c.categoria;
       const arr = this.documentosArray;
       arr.clear();
       (c.documentos ?? []).forEach(d =>
@@ -67,11 +101,82 @@ export class ClienteModalComponent implements OnInit {
           if (contacto) this.contactoSeleccionado.set(contacto);
         });
       }
+    } else {
+      // New card: default to Indefinido (empty checklist)
+      this.checklist.set(buildChecklistFromTemplate('Indefinido'));
+      this.currentCategoria = 'Indefinido';
     }
   }
 
   onContactoSeleccionado(c: Contacto): void {
     this.contactoSeleccionado.set(c);
+  }
+
+  onCategoriaChange(event: Event): void {
+    const newValue = (event.target as HTMLSelectElement).value as CategoriaCliente;
+    if (newValue === this.currentCategoria) return;
+
+    // If nothing's been done yet (no items, or none completed), seed directly without prompting.
+    if (this.checklist().length === 0 || this.checklist().every(i => !i.completado)) {
+      this.applyCategoria(newValue);
+      return;
+    }
+
+    // Items have been ticked off — prompt before replacing. Revert the select for now.
+    this.pendingCategoriaChange.set(newValue);
+    this.form.controls.categoria.setValue(this.currentCategoria, { emitEvent: false });
+  }
+
+  confirmarCambioCategoria(): void {
+    const newCategoria = this.pendingCategoriaChange();
+    if (!newCategoria) return;
+    this.applyCategoria(newCategoria);
+    this.pendingCategoriaChange.set(null);
+  }
+
+  cancelarCambioCategoria(): void {
+    this.pendingCategoriaChange.set(null);
+  }
+
+  private applyCategoria(categoria: CategoriaCliente): void {
+    this.form.controls.categoria.setValue(categoria);
+    this.checklist.set(buildChecklistFromTemplate(categoria));
+    this.currentCategoria = categoria;
+  }
+
+  toggleChecklistItem(index: number): void {
+    const items = [...this.checklist()];
+    const item = items[index];
+    items[index] = {
+      ...item,
+      completado: !item.completado,
+      completadoEn: !item.completado ? new Date() : null,
+    };
+    this.checklist.set(items);
+  }
+
+  addChecklistItem(fase: FaseChecklist): void {
+    const items = [...this.checklist()];
+    items.push({ texto: '', fase, completado: false, completadoEn: null });
+    this.checklist.set(items);
+  }
+
+  updateChecklistItemText(index: number, event: Event): void {
+    const items = [...this.checklist()];
+    items[index] = { ...items[index], texto: (event.target as HTMLInputElement).value };
+    this.checklist.set(items);
+  }
+
+  removeChecklistItem(index: number): void {
+    const items = [...this.checklist()];
+    items.splice(index, 1);
+    this.checklist.set(items);
+  }
+
+  itemsForFase(fase: FaseChecklist): { item: ChecklistItem; index: number }[] {
+    return this.checklist()
+      .map((item, index) => ({ item, index }))
+      .filter(x => x.item.fase === fase);
   }
 
   get documentosArray(): FormArray {
@@ -104,12 +209,15 @@ export class ClienteModalComponent implements OnInit {
     if (this.saving()) return;
     this.saving.set(true);
     const v = this.form.value;
+    // Strip any blank-text checklist items the user added but never filled in
+    const cleanedChecklist = this.checklist().filter(i => i.texto.trim().length > 0);
     const data: Partial<Cliente> = {
       contactoId:          contacto.id,
       nombre:              contacto.name,
       whatsapp:            contacto.phone,
       municipio:           contacto.location.city ?? '',
-      tipoProyecto:        v.tipoProyecto as Cliente['tipoProyecto'],
+      categoria:           (v.categoria ?? 'Indefinido') as CategoriaCliente,
+      checklist:           cleanedChecklist,
       fechaUltimoContacto: this.toDate(v.fechaUltimoContacto ?? ''),
       fechaEstimadaInicio: this.toDate(v.fechaEstimadaInicio ?? ''),
       notas:               v.notas ?? '',

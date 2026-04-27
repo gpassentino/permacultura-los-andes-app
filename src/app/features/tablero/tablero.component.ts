@@ -7,7 +7,14 @@ import {
 } from '@angular/cdk/drag-drop';
 import { ClienteService } from '../../services/cliente.service';
 import { RecordatorioService } from '../../services/recordatorio.service';
-import { Cliente, EstadoCliente, ESTADOS_CLIENTE } from '../../shared/models/cliente.model';
+import {
+  Cliente,
+  EstadoCliente,
+  ESTADOS_CLIENTE,
+  CategoriaCliente,
+  NEXT_CATEGORIA,
+  buildChecklistFromTemplate
+} from '../../shared/models/cliente.model';
 import { ClienteCardComponent } from '../../shared/components/cliente-card/cliente-card.component';
 import { ClienteModalComponent } from './cliente-modal/cliente-modal.component';
 
@@ -47,10 +54,13 @@ export class TableroComponent {
     }
   });
 
-  readonly columnaActiva   = signal<EstadoCliente>('Contacto Inicial');
+  readonly columnaActiva   = signal<EstadoCliente>('Antes');
   readonly selectedCliente = signal<Cliente | null>(null);
   readonly showModal       = signal(false);
   readonly error           = signal<string | null>(null);
+
+  // "Continuar con siguiente fase" prompt state — shown after a card lands in Completo
+  readonly continuarPrompt = signal<{ cliente: Cliente; siguiente: CategoriaCliente | null } | null>(null);
 
   // CDK touch drag: long-press delay before drag starts (ms)
   readonly touchDelay = 500;
@@ -87,10 +97,50 @@ export class TableroComponent {
     if (event.previousContainer === event.container) return;
     const cliente: Cliente = event.item.data;
     const nuevoEstado: EstadoCliente = event.container.data;
-    if (cliente.id) {
-      this.clienteService.updateCliente(cliente.id, { estado: nuevoEstado }).catch(() => {
+    if (!cliente.id) return;
+    this.clienteService.updateCliente(cliente.id, { estado: nuevoEstado })
+      .then(() => {
+        // When a card lands in Completo, offer to spawn the next-phase card
+        if (nuevoEstado === 'Completo' && cliente.estado !== 'Completo') {
+          this.continuarPrompt.set({
+            cliente,
+            siguiente: NEXT_CATEGORIA[cliente.categoria] ?? null,
+          });
+        }
+      })
+      .catch(() => {
         this.error.set('Error al mover el cliente. Intente de nuevo.');
       });
+  }
+
+  cancelarContinuar(): void {
+    this.continuarPrompt.set(null);
+  }
+
+  async confirmarContinuar(categoria: CategoriaCliente): Promise<void> {
+    const prompt = this.continuarPrompt();
+    if (!prompt) return;
+    const { cliente } = prompt;
+    try {
+      this.error.set(null);
+      await this.clienteService.addCliente({
+        contactoId:          cliente.contactoId,
+        nombre:              cliente.nombre,
+        whatsapp:            cliente.whatsapp,
+        municipio:           cliente.municipio,
+        categoria,
+        checklist:           buildChecklistFromTemplate(categoria),
+        estado:              'Antes',
+        fechaUltimoContacto: null,
+        fechaEstimadaInicio: null,
+        notas:               '',
+        documentos:          [],
+        recordatorioFecha:   null,
+        recordatorioMensaje: '',
+      });
+      this.continuarPrompt.set(null);
+    } catch {
+      this.error.set('Error al crear la siguiente tarjeta. Intente de nuevo.');
     }
   }
 

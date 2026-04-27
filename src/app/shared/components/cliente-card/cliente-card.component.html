@@ -17,12 +17,27 @@
       }
     </div>
 
-    <!-- Row 2: Tipo de proyecto badge -->
-    @if (cliente().tipoProyecto) {
-      <div class="mb-1">
-        <span class="badge tipo-badge" [class]="tipoBadgeClass()">
-          {{ cliente().tipoProyecto }}
+    <!-- Row 2: Categoría badge + checklist progress -->
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <span class="categoria-badge" [class]="categoriaBadgeClass()">
+        {{ cliente().categoria }}
+      </span>
+      @if (checklistProgress().total > 0) {
+        <span class="small text-muted">
+          {{ checklistProgress().done }}/{{ checklistProgress().total }} ✓
         </span>
+      }
+    </div>
+
+    <!-- Row 2b: Next checklist items (up to 2) — empty when checklist is done or unset -->
+    @if (nextItems().length > 0) {
+      <div class="checklist-next small text-muted mb-1">
+        @for (item of nextItems(); track $index) {
+          <div class="checklist-next-item">
+            <span class="checklist-next-marker">▸</span>
+            {{ item.texto }}
+          </div>
+        }
       </div>
     }
 

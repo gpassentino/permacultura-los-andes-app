@@ -1,6 +1,6 @@
 import { Component, input, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { Cliente } from '../../models/cliente.model';
+import { Cliente, categoriaBadgeClass } from '../../models/cliente.model';
 import { RecordatorioService } from '../../../services/recordatorio.service';
 
 @Component({
@@ -41,16 +41,18 @@ export class ClienteCardComponent {
     return `https://wa.me/57${num}`;
   });
 
-  readonly tipoBadgeClass = computed(() => {
-    const map: Record<string, string> = {
-      'Paisajismo Regenerativo':  'badge-tipo-paisajismo',
-      'Diseño y Manejo del Agua': 'badge-tipo-agua',
-      'Bosque Comestible':        'badge-tipo-bosque',
-      'Taller Presencial':        'badge-tipo-taller',
-      'Consultoría':              'badge-tipo-consultoria',
-      'Otro':                     'badge-tipo-otro'
-    };
-    return map[this.cliente().tipoProyecto] ?? 'badge-tipo-otro';
+  readonly categoriaBadgeClass = computed(() => categoriaBadgeClass(this.cliente().categoria));
+
+  readonly checklistProgress = computed(() => {
+    const items = this.cliente().checklist ?? [];
+    return { done: items.filter(i => i.completado).length, total: items.length };
+  });
+
+  // Next 2 incomplete items, in checklist order — drives the "Próximo:" preview on the card.
+  // Field-utility: husband sees what to do next at a glance without opening the modal.
+  readonly nextItems = computed(() => {
+    const items = this.cliente().checklist ?? [];
+    return items.filter(i => !i.completado).slice(0, 2);
   });
 
   readonly diasContactoClass = computed(() => {

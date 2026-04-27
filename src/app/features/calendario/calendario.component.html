@@ -1,0 +1,47 @@
+<div class="calendario-page">
+  <header class="page-header">
+    <h1 class="h4 mb-0">Calendario</h1>
+    <a [href]="openInGoogleUrl()"
+       target="_blank"
+       rel="noopener"
+       class="btn btn-sm btn-outline-primary">
+      Abrir en Google Calendar
+    </a>
+  </header>
+
+  <div class="calendario-mode-toggle d-flex gap-2 px-3 pb-2">
+    <button type="button"
+            class="btn btn-sm"
+            [class.btn-primary]="mode() === 'AGENDA' || (mode() === null && isMobile())"
+            [class.btn-outline-secondary]="!(mode() === 'AGENDA' || (mode() === null && isMobile()))"
+            (click)="setMode('AGENDA')">
+      Agenda
+    </button>
+    <button type="button"
+            class="btn btn-sm"
+            [class.btn-primary]="mode() === 'WEEK' || (mode() === null && !isMobile())"
+            [class.btn-outline-secondary]="!(mode() === 'WEEK' || (mode() === null && !isMobile()))"
+            (click)="setMode('WEEK')">
+      Semana
+    </button>
+    <button type="button"
+            class="btn btn-sm"
+            [class.btn-primary]="mode() === 'MONTH'"
+            [class.btn-outline-secondary]="mode() !== 'MONTH'"
+            (click)="setMode('MONTH')">
+      Mes
+    </button>
+  </div>
+
+  <div class="calendario-frame-wrapper">
+    <iframe [src]="embedUrl()"
+            class="calendario-frame"
+            title="Calendario Permacultura Los Andes"
+            frameborder="0"
+            scrolling="no"></iframe>
+  </div>
+
+  <p class="calendario-help text-muted small px-3 mt-2 mb-0">
+    Si no ves los eventos, asegúrate de estar conectado en Google con una cuenta autorizada.
+  </p>
+</div>

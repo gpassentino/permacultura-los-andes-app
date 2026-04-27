@@ -31,6 +31,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/contactos/contacto-detalle/contacto-detalle.component').then(m => m.ContactoDetalleComponent),
     canActivate: [authGuard]
   },
+  {
+    path: 'calendario',
+    loadComponent: () => import('./features/calendario/calendario.component').then(m => m.CalendarioComponent),
+    canActivate: [authGuard]
+  },
   { path: '', redirectTo: '/tablero', pathMatch: 'full' },
   { path: '**', redirectTo: '/tablero' }
 ];

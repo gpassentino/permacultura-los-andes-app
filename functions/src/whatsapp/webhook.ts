@@ -68,10 +68,11 @@ export const whatsappWebhook = onRequest(
 );
 
 function verifySecret(req: Request, expected: string): boolean {
-  const provided = req.get('x-webhook-secret') ?? '';
-  if (!provided || !expected) return false;
+  const provided = (req.get('x-webhook-secret') ?? '').trim();
+  const trimmed = expected.trim();
+  if (!provided || !trimmed) return false;
   const a = Buffer.from(provided);
-  const b = Buffer.from(expected);
+  const b = Buffer.from(trimmed);
   if (a.length !== b.length) return false;
   return timingSafeEqual(a, b);
 }

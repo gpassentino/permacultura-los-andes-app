@@ -12,7 +12,8 @@ export const whatsappWebhook = onRequest(
   {
     region: 'us-central1',
     secrets: [WHATSAPP_WEBHOOK_SECRET],
-    cors: false
+    cors: false,
+    invoker: 'public'
   },
   async (req: Request, res: Response) => {
     if (req.method !== 'POST') {

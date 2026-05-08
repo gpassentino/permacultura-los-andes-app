@@ -16,6 +16,15 @@ export const whatsappWebhook = onRequest(
     invoker: 'public'
   },
   async (req: Request, res: Response) => {
+    logger.info('whatsapp.webhook.received', {
+      method: req.method,
+      ip: req.ip,
+      userAgent: req.get('user-agent'),
+      hasSecretHeader: !!req.get('x-webhook-secret'),
+      contentType: req.get('content-type'),
+      bodyKeys: req.body && typeof req.body === 'object' ? Object.keys(req.body) : null
+    });
+
     if (req.method !== 'POST') {
       res.status(405).send('Method Not Allowed');
       return;
@@ -32,7 +41,10 @@ export const whatsappWebhook = onRequest(
       messages = parseWebhookPayload(req.body);
     } catch (err) {
       if (err instanceof MalformedPayloadError) {
-        logger.warn('whatsapp.webhook.malformed', { reason: err.message });
+        logger.warn('whatsapp.webhook.malformed', {
+          reason: err.message,
+          bodyPreview: JSON.stringify(req.body).slice(0, 500)
+        });
         res.status(400).send(`Bad Request: ${err.message}`);
         return;
       }
@@ -41,9 +53,17 @@ export const whatsappWebhook = onRequest(
 
     if (messages.length === 0) {
       // Status updates, read receipts, etc. — we acknowledge but do nothing.
+      logger.info('whatsapp.webhook.no_messages', {
+        bodyPreview: JSON.stringify(req.body).slice(0, 500)
+      });
       res.status(200).send('OK');
       return;
     }
+
+    logger.info('whatsapp.webhook.parsed', {
+      messageCount: messages.length,
+      wamids: messages.map((m) => m.wamid)
+    });
 
     const results = [];
     const errors: Array<{ wamid: string; error: string }> = [];

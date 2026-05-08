@@ -11,30 +11,19 @@
   &::-webkit-scrollbar { display: none; }
 }
 
-// ── Tabs ──────────────────────────────────────────────────────
-.tab-nav {
-  background: t.$color-white;
+// ── Section headings ──────────────────────────────────────────
+.section-heading {
+  font-size: t.$font-size-base;
+  font-weight: 700;
+  color: t.$color-text-label;
+  margin: 0;
+}
 
-  .nav-link {
-    font-size: t.$font-size-sm;
-    padding: t.$space-sm t.$space-md;
-    color: t.$color-text-muted;
-    border: none;
-    border-bottom: 2px solid transparent;
-    border-radius: 0;
-
-    &.active {
-      color: t.$color-primary;
-      border-bottom-color: t.$color-primary;
-      font-weight: 600;
-      background: transparent;
-    }
-
-    &:hover:not(.active) {
-      color: t.$color-primary;
-      background: transparent;
-    }
-  }
+.section-subheading {
+  font-size: t.$font-size-sm;
+  font-weight: 600;
+  color: t.$color-text-muted;
+  margin: 0;
 }
 
 // ── Info sections ─────────────────────────────────────────────

@@ -77,22 +77,47 @@ describe('ContactoDetalleComponent', () => {
     });
   });
 
-  describe('tab switching', () => {
-    it('starts on info tab', () => {
+  describe('hasAcademiaData', () => {
+    it('is false when academiaHistory is undefined', () => {
+      contactoSubject.next(makeContacto({ academiaHistory: undefined }));
       const c = createComponent();
-      expect(c.activeTab()).toBe('info');
+      expect(c.hasAcademiaData()).toBe(false);
     });
 
-    it('switches to mensajes tab', () => {
+    it('is false when academiaHistory has empty arrays and no schedule', () => {
+      contactoSubject.next(makeContacto({
+        academiaHistory: { completedTalleres: [], interestedTalleres: [] },
+      }));
       const c = createComponent();
-      c.activeTab.set('mensajes');
-      expect(c.activeTab()).toBe('mensajes');
+      expect(c.hasAcademiaData()).toBe(false);
     });
 
-    it('switches to academia tab', () => {
+    it('is true when preferredSchedule is set', () => {
+      contactoSubject.next(makeContacto({
+        academiaHistory: {
+          completedTalleres: [],
+          interestedTalleres: [],
+          preferredSchedule: 'weekend',
+        },
+      }));
       const c = createComponent();
-      c.activeTab.set('academia');
-      expect(c.activeTab()).toBe('academia');
+      expect(c.hasAcademiaData()).toBe(true);
+    });
+
+    it('is true when completedTalleres has entries', () => {
+      contactoSubject.next(makeContacto({
+        academiaHistory: { completedTalleres: ['t1'], interestedTalleres: [] },
+      }));
+      const c = createComponent();
+      expect(c.hasAcademiaData()).toBe(true);
+    });
+
+    it('is true when interestedTalleres has entries', () => {
+      contactoSubject.next(makeContacto({
+        academiaHistory: { completedTalleres: [], interestedTalleres: ['t1'] },
+      }));
+      const c = createComponent();
+      expect(c.hasAcademiaData()).toBe(true);
     });
   });
 

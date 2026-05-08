@@ -71,176 +71,138 @@
       }
     </div>
 
-    <!-- ── Tabs ── -->
-    <div class="tab-nav border-bottom px-3">
-      <ul class="nav nav-tabs border-0 gap-1">
-        <li class="nav-item">
-          <button class="nav-link" [class.active]="activeTab() === 'info'"
-                  (click)="activeTab.set('info')">
-            📋 Información
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" [class.active]="activeTab() === 'mensajes'"
-                  (click)="activeTab.set('mensajes')">
-            💬 Mensajes
-          </button>
-        </li>
-        <li class="nav-item">
-          <button class="nav-link" [class.active]="activeTab() === 'academia'"
-                  (click)="activeTab.set('academia')">
-            🎓 Academia
-          </button>
-        </li>
-      </ul>
-    </div>
+    <!-- ── Mensajes ── -->
+    <section class="border-top pb-3">
+      <h2 class="section-heading px-3 pt-3 mb-2">💬 Mensajes</h2>
+      <app-message-history [contactId]="contacto()!.id!" />
+    </section>
 
-    <!-- ── Tab: Información ── -->
-    @if (activeTab() === 'info') {
-      <div class="tab-content px-3 pt-3 pb-5">
+    <!-- ── Información (incl. Academia) ── -->
+    <section class="border-top px-3 pt-3 pb-5">
+      <h2 class="section-heading mb-3">📋 Información</h2>
 
-        <!-- Tipo de negocio -->
+      <!-- Tipo de negocio -->
+      <div class="info-section mb-3">
+        <div class="info-label">Tipo de negocio</div>
+        <div class="d-flex flex-wrap gap-1 mt-1">
+          @for (tipo of contacto()!.businessTypes; track tipo) {
+            <span class="badge bg-light text-dark border badge-type">
+              {{ typeIcon(tipo) }} {{ typeLabel(tipo) }}
+            </span>
+          }
+        </div>
+      </div>
+
+      <!-- Etiqueta WA -->
+      <div class="info-section mb-3">
+        <div class="info-label">Etiqueta WhatsApp</div>
+        <span class="badge-wa-label badge mt-1">{{ contacto()!.whatsappLabel }}</span>
+      </div>
+
+      <!-- Ubicación -->
+      @if (hasLocation(contacto()!)) {
         <div class="info-section mb-3">
-          <div class="info-label">Tipo de negocio</div>
-          <div class="d-flex flex-wrap gap-1 mt-1">
-            @for (tipo of contacto()!.businessTypes; track tipo) {
-              <span class="badge bg-light text-dark border badge-type">
-                {{ typeIcon(tipo) }} {{ typeLabel(tipo) }}
-              </span>
+          <div class="info-label">Ubicación</div>
+          <div class="mt-1">
+            @if (contacto()!.location.city) {
+              <span class="text-body">📍 {{ contacto()!.location.city }}</span>
+            }
+            @if (contacto()!.location.address) {
+              <p class="text-muted small mb-0">{{ contacto()!.location.address }}</p>
+            }
+            @if (contacto()!.location.coordinates) {
+              <p class="text-muted small mb-0">
+                🌐 {{ contacto()!.location.coordinates!.lat | number:'1.4-4' }},
+                   {{ contacto()!.location.coordinates!.lng | number:'1.4-4' }}
+              </p>
             }
           </div>
         </div>
+      }
 
-        <!-- Etiqueta WA -->
+      <!-- Kanban link(s) — one per linked Cliente -->
+      @if (linkedClientes().length > 0) {
         <div class="info-section mb-3">
-          <div class="info-label">Etiqueta WhatsApp</div>
-          <span class="badge-wa-label badge mt-1">{{ contacto()!.whatsappLabel }}</span>
-        </div>
-
-        <!-- Ubicación -->
-        @if (hasLocation(contacto()!)) {
-          <div class="info-section mb-3">
-            <div class="info-label">Ubicación</div>
-            <div class="mt-1">
-              @if (contacto()!.location.city) {
-                <span class="text-body">📍 {{ contacto()!.location.city }}</span>
-              }
-              @if (contacto()!.location.address) {
-                <p class="text-muted small mb-0">{{ contacto()!.location.address }}</p>
-              }
-              @if (contacto()!.location.coordinates) {
-                <p class="text-muted small mb-0">
-                  🌐 {{ contacto()!.location.coordinates!.lat | number:'1.4-4' }},
-                     {{ contacto()!.location.coordinates!.lng | number:'1.4-4' }}
-                </p>
-              }
-            </div>
-          </div>
-        }
-
-        <!-- Kanban link(s) — one per linked Cliente -->
-        @if (linkedClientes().length > 0) {
-          <div class="info-section mb-3">
-            <div class="info-label">Tablero de Clientes</div>
-            <div class="mt-1 d-flex flex-wrap gap-2">
-              @for (c of linkedClientes(); track c.id) {
-                <a [routerLink]="['/tablero']"
-                   [queryParams]="{ clienteId: c.id }"
-                   class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
-                   🌿
-                   <span class="categoria-badge" [class]="categoriaBadgeClassFor(c)">
-                     {{ c.categoria }}
-                   </span>
-                   <span class="badge bg-secondary">{{ c.estado }}</span>
-                </a>
-              }
-            </div>
-          </div>
-        }
-
-        <!-- Notas -->
-        @if (contacto()!.notas) {
-          <div class="info-section mb-3">
-            <div class="info-label">Notas internas</div>
-            <p class="mt-1 mb-0 text-body" style="white-space: pre-wrap;">{{ contacto()!.notas }}</p>
-          </div>
-        }
-
-        <!-- Metadata -->
-        <div class="info-section mb-3">
-          <div class="info-label">Metadatos</div>
-          <div class="mt-1 text-muted small">
-            <div>Creado: {{ contacto()!.createdAt | date:'d MMM yyyy, h:mm a':'':'es-CO' }}</div>
-            <div>Último mensaje: {{ contacto()!.lastMessageAt | date:'d MMM yyyy, h:mm a':'':'es-CO' }}</div>
-            <div>Última sincronización: {{ contacto()!.lastSyncAt | date:'d MMM yyyy, h:mm a':'':'es-CO' }}</div>
+          <div class="info-label">Tablero de Clientes</div>
+          <div class="mt-1 d-flex flex-wrap gap-2">
+            @for (c of linkedClientes(); track c.id) {
+              <a [routerLink]="['/tablero']"
+                 [queryParams]="{ clienteId: c.id }"
+                 class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">
+                 🌿
+                 <span class="categoria-badge" [class]="categoriaBadgeClassFor(c)">
+                   {{ c.categoria }}
+                 </span>
+                 <span class="badge bg-secondary">{{ c.estado }}</span>
+              </a>
+            }
           </div>
         </div>
+      }
 
-      </div><!-- /.tab-content -->
-    }
+      <!-- Notas -->
+      @if (contacto()!.notas) {
+        <div class="info-section mb-3">
+          <div class="info-label">Notas internas</div>
+          <p class="mt-1 mb-0 text-body" style="white-space: pre-wrap;">{{ contacto()!.notas }}</p>
+        </div>
+      }
 
-    <!-- ── Tab: Mensajes ── -->
-    @if (activeTab() === 'mensajes') {
-      <div class="pb-5">
-        <app-message-history [contactId]="contacto()!.id!" />
+      <!-- Academia (only if any data) -->
+      @if (hasAcademiaData()) {
+        <div class="academia-block mt-4 pt-3 border-top">
+          <h3 class="section-subheading mb-3">🎓 Academia</h3>
+
+          @if (contacto()!.academiaHistory?.preferredSchedule) {
+            <div class="info-section mb-3">
+              <div class="info-label">Horario preferido</div>
+              <p class="mt-1 mb-0">{{ scheduleLabel(contacto()!.academiaHistory?.preferredSchedule) }}</p>
+            </div>
+          }
+
+          @if ((contacto()!.academiaHistory?.completedTalleres ?? []).length > 0) {
+            <div class="info-section mb-3">
+              <div class="info-label">Talleres completados</div>
+              <ul class="list-unstyled mt-1 mb-0">
+                @for (id of contacto()!.academiaHistory!.completedTalleres; track id) {
+                  <li>
+                    <a [routerLink]="['/academia', id]" class="text-primary small">
+                      🎓 {{ tallerName(id) }}
+                    </a>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+
+          @if ((contacto()!.academiaHistory?.interestedTalleres ?? []).length > 0) {
+            <div class="info-section mb-3">
+              <div class="info-label">Talleres de interés</div>
+              <ul class="list-unstyled mt-1 mb-0">
+                @for (id of contacto()!.academiaHistory!.interestedTalleres; track id) {
+                  <li>
+                    <a [routerLink]="['/academia', id]" class="text-primary small">
+                      ⭐ {{ tallerName(id) }}
+                    </a>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Metadata -->
+      <div class="info-section mb-0 mt-4 pt-3 border-top">
+        <div class="info-label">Metadatos</div>
+        <div class="mt-1 text-muted small">
+          <div>Creado: {{ contacto()!.createdAt | date:'d MMM yyyy, h:mm a':'':'es-CO' }}</div>
+          <div>Último mensaje: {{ contacto()!.lastMessageAt | date:'d MMM yyyy, h:mm a':'':'es-CO' }}</div>
+          <div>Última sincronización: {{ contacto()!.lastSyncAt | date:'d MMM yyyy, h:mm a':'':'es-CO' }}</div>
+        </div>
       </div>
-    }
 
-    <!-- ── Tab: Academia ── -->
-    @if (activeTab() === 'academia') {
-      <div class="tab-content px-3 pt-3 pb-5">
-
-        <!-- Horario preferido -->
-        <div class="info-section mb-3">
-          <div class="info-label">Horario preferido</div>
-          <p class="mt-1 mb-0">{{ scheduleLabel(contacto()!.academiaHistory?.preferredSchedule) }}</p>
-        </div>
-
-        <!-- Talleres completados -->
-        <div class="info-section mb-3">
-          <div class="info-label">Talleres completados</div>
-          @if ((contacto()!.academiaHistory?.completedTalleres ?? []).length === 0) {
-            <p class="text-muted small mt-1 mb-0">Sin talleres completados.</p>
-          } @else {
-            <ul class="list-unstyled mt-1 mb-0">
-              @for (id of contacto()!.academiaHistory!.completedTalleres; track id) {
-                <li>
-                  <a [routerLink]="['/academia', id]" class="text-primary small">
-                    🎓 {{ tallerName(id) }}
-                  </a>
-                </li>
-              }
-            </ul>
-          }
-        </div>
-
-        <!-- Talleres de interés -->
-        <div class="info-section mb-3">
-          <div class="info-label">Talleres de interés</div>
-          @if ((contacto()!.academiaHistory?.interestedTalleres ?? []).length === 0) {
-            <p class="text-muted small mt-1 mb-0">Sin talleres de interés registrados.</p>
-          } @else {
-            <ul class="list-unstyled mt-1 mb-0">
-              @for (id of contacto()!.academiaHistory!.interestedTalleres; track id) {
-                <li>
-                  <a [routerLink]="['/academia', id]" class="text-primary small">
-                    ⭐ {{ tallerName(id) }}
-                  </a>
-                </li>
-              }
-            </ul>
-          }
-        </div>
-
-        <!-- Actions -->
-        <div class="d-flex flex-wrap gap-2 mt-4">
-          <a routerLink="/academia" class="btn btn-outline-primary btn-sm">
-            🎓 Ver talleres disponibles
-          </a>
-        </div>
-
-      </div><!-- /.tab-content -->
-    }
+    </section>
 
   </div><!-- /.detalle-container -->
 

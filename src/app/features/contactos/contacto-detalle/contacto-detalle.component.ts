@@ -69,8 +69,15 @@ export class ContactoDetalleComponent {
     { initialValue: [] }
   );
 
-  // ── Active tab ──────────────────────────────────────────────────────────────
-  readonly activeTab = signal<'info' | 'mensajes' | 'academia'>('info');
+  readonly hasAcademiaData = computed(() => {
+    const a = this.contacto()?.academiaHistory;
+    if (!a) return false;
+    return (
+      !!a.preferredSchedule ||
+      (a.completedTalleres?.length ?? 0) > 0 ||
+      (a.interestedTalleres?.length ?? 0) > 0
+    );
+  });
 
   // ── Edit modal ──────────────────────────────────────────────────────────────
   readonly showEditModal = signal(false);

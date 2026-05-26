@@ -1,0 +1,104 @@
+@if (error()) {
+  <div class="alert alert-danger alert-dismissible mx-3 mt-2 mb-0 py-2" role="alert">
+    {{ error() }}
+    <button type="button" class="btn-close" (click)="error.set(null)" aria-label="Cerrar"></button>
+  </div>
+}
+
+<!-- ── Filter chips ── -->
+<div class="filter-chips px-3 pb-2 d-flex gap-2 flex-wrap">
+  <button class="chip" [class.chip--active]="chip() === 'todos'" (click)="chip.set('todos')">Todos</button>
+  <button class="chip" [class.chip--active]="chip() === 'asesorias'" (click)="chip.set('asesorias')">Asesorías</button>
+  <button class="chip" [class.chip--active]="chip() === 'informe'" (click)="chip.set('informe')">Informe</button>
+  <button class="chip" [class.chip--active]="chip() === 'ruta1'" (click)="chip.set('ruta1')">Ruta 1</button>
+  <button class="chip" [class.chip--active]="chip() === 'ruta2'" (click)="chip.set('ruta2')">Ruta 2</button>
+  <button class="chip" [class.chip--active]="chip() === 'inactivos'" (click)="chip.set('inactivos')">Inactivos</button>
+</div>
+
+@if (loading()) {
+  <div class="d-flex justify-content-center py-5">
+    <div class="spinner-border text-success" role="status">
+      <span class="visually-hidden">Cargando…</span>
+    </div>
+  </div>
+} @else {
+  <div class="px-3 pb-5">
+    @if (filtered().length === 0) {
+      <div class="text-center text-muted py-5">
+        <p class="mb-2">Sin servicios en esta vista.</p>
+      </div>
+    } @else {
+      <div class="row g-3">
+        @for (s of filtered(); track s.id) {
+          <div class="col-12 col-md-6">
+            <div class="card h-100 shadow-sm">
+              <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                  <h2 class="h6 fw-bold mb-0">{{ s.nombre }}</h2>
+                  <span [class]="badgeClass(s.tipo)" class="text-nowrap">
+                    {{ TIPOS_SERVICIO_LABELS[s.tipo] }}
+                  </span>
+                </div>
+
+                <p class="small text-muted mb-2" style="white-space: pre-line;">
+                  {{ s.descripcion }}
+                </p>
+
+                <div class="fw-semibold text-success mb-3">
+                  💰 {{ formatPrecio(s.precio) }}
+                </div>
+
+                @if (s.componentes.length > 0) {
+                  <div class="small text-muted mb-3">
+                    {{ s.componentes.length }} componente{{ s.componentes.length === 1 ? '' : 's' }}
+                    en {{ RUBROS.length }} rubros
+                  </div>
+                }
+
+                @if (!s.activo) {
+                  <div class="badge bg-secondary mb-2">Inactivo</div>
+                }
+
+                <div class="d-flex gap-2 mt-auto">
+                  <button class="btn btn-sm btn-outline-success flex-grow-1"
+                          (click)="copiar(s)"
+                          [disabled]="copiedId() === s.id">
+                    @if (copiedId() === s.id) { ✓ Copiado } @else { 📋 Copiar }
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary"
+                          (click)="openEditar(s)"
+                          aria-label="Editar">
+                    ✏️
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+}
+
+<!-- ── FAB (mobile) ── -->
+<button class="fab" type="button" (click)="openNuevo()" aria-label="Nuevo servicio" title="Nuevo servicio">
+  +
+</button>
+
+<!-- ── Modal ── -->
+@if (showModal()) {
+  <div class="modal show d-block modal-overlay"
+       tabindex="-1" role="dialog" aria-modal="true"
+       (click)="onBackdropClick($event)">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <app-servicio-form
+          [servicio]="selected()"
+          (cerrar)="closeModal()"
+          (guardar)="onGuardar($event)"
+          (eliminar)="onEliminar($event)" />
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop show modal-backdrop-custom"></div>
+}

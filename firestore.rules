@@ -36,5 +36,9 @@ service cloud.firestore {
       }
     }
 
+    match /servicios/{servicioId} {
+      allow read, write: if isAuthorized();
+    }
+
   }
 }

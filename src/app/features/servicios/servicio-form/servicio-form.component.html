@@ -1,0 +1,189 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="modal-header">
+    <h2 class="h6 fw-bold mb-0">
+      {{ servicio() ? 'Editar servicio' : 'Nuevo servicio' }}
+    </h2>
+    <button type="button" class="btn-close" (click)="cerrar.emit()" aria-label="Cerrar"></button>
+  </div>
+
+  <div class="modal-body">
+    <!-- Tipo -->
+    <div class="mb-3">
+      <label class="form-label small fw-semibold">Tipo *</label>
+      <select class="form-select form-select-sm" formControlName="tipo">
+        @for (t of TIPOS_SERVICIO; track t) {
+          <option [value]="t">{{ TIPOS_SERVICIO_LABELS[t] }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Nombre -->
+    <div class="mb-3">
+      <label class="form-label small fw-semibold">Nombre *</label>
+      <input type="text" class="form-control form-control-sm" formControlName="nombre">
+      @if (form.get('nombre')?.invalid && form.get('nombre')?.touched) {
+        <div class="text-danger small mt-1">El nombre es requerido.</div>
+      }
+    </div>
+
+    <!-- Descripción -->
+    <div class="mb-3">
+      <label class="form-label small fw-semibold">Descripción</label>
+      <textarea class="form-control form-control-sm" rows="2" formControlName="descripcion"></textarea>
+    </div>
+
+    <!-- Qué incluye -->
+    <div class="mb-3">
+      <label class="form-label small fw-semibold">¿Qué incluye? (cliente)</label>
+      <textarea class="form-control form-control-sm" rows="4" formControlName="queIncluye"
+                placeholder="• Item 1&#10;• Item 2"></textarea>
+    </div>
+
+    <!-- Qué hace el negocio -->
+    <div class="mb-3">
+      <label class="form-label small fw-semibold">¿Qué hace el negocio? (interno)</label>
+      <textarea class="form-control form-control-sm" rows="3" formControlName="queHaceElNegocio"></textarea>
+    </div>
+
+    <hr>
+
+    <!-- Precio -->
+    <div class="mb-3">
+      <label class="form-label small fw-semibold">Modo de precio</label>
+      <select class="form-select form-select-sm" formControlName="precioModo">
+        <option value="fijo">Fijo</option>
+        <option value="rango">Rango (min/max)</option>
+        <option value="por_m2">Por m²</option>
+      </select>
+    </div>
+
+    @if (precioModo() === 'fijo') {
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Valor (COP)</label>
+        <input type="number" class="form-control form-control-sm" formControlName="precioValor" min="0">
+      </div>
+    } @else if (precioModo() === 'rango') {
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Mínimo (COP)</label>
+          <input type="number" class="form-control form-control-sm" formControlName="precioMin" min="0">
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-semibold">Máximo (COP)</label>
+          <input type="number" class="form-control form-control-sm" formControlName="precioMax" min="0">
+        </div>
+      </div>
+    } @else if (precioModo() === 'por_m2') {
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">COP por m²</label>
+        <input type="number" class="form-control form-control-sm" formControlName="precioPorM2" min="0">
+      </div>
+    }
+
+    <!-- Componentes (solo Ruta 1 / Ruta 2) -->
+    @if (mostrarComponentes()) {
+      <hr>
+      <div class="mb-2">
+        <h3 class="h6 fw-bold mb-1">Componentes del presupuesto</h3>
+        <p class="small text-muted mb-2">
+          Desglose por rubro. La calculadora usará estos valores como base.
+        </p>
+      </div>
+
+      <div formArrayName="componentes">
+        @for (rubro of RUBROS; track rubro) {
+          <div class="card mb-3">
+            <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
+              <span class="fw-semibold small">{{ RUBROS_LABELS[rubro] }}</span>
+              <span class="text-muted small">
+                Total: ${{ totalRubro(rubro) | number:'1.0-0':'es-CO' }}
+              </span>
+            </div>
+            <div class="card-body py-2 px-3">
+              @for (entry of componentesPorRubro(rubro); track entry.index) {
+                <div class="row g-2 align-items-end mb-2 pb-2 border-bottom"
+                     [formGroupName]="entry.index">
+                  <div class="col-12 col-md-4">
+                    <label class="form-label small mb-1">Nombre</label>
+                    <input type="text" class="form-control form-control-sm" formControlName="nombre">
+                  </div>
+                  <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1">Unidad</label>
+                    <input type="text" class="form-control form-control-sm" formControlName="unidad">
+                  </div>
+                  <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1">Precio unit.</label>
+                    <input type="number" class="form-control form-control-sm" formControlName="precioUnitario" min="0">
+                  </div>
+                  <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1">Cantidad</label>
+                    <input type="number" class="form-control form-control-sm" formControlName="cantidadDefault" min="0">
+                  </div>
+                  <div class="col-6 col-md-2 text-end">
+                    <button type="button" class="btn btn-sm btn-outline-danger w-100"
+                            (click)="eliminarComponente(entry.index)"
+                            aria-label="Eliminar componente">
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              }
+              <button type="button" class="btn btn-sm btn-outline-secondary"
+                      (click)="agregarComponente(rubro)">
+                + Agregar componente
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="alert alert-success py-2 px-3 mb-3 d-flex justify-content-between">
+        <span class="fw-semibold">Total general estimado</span>
+        <span class="fw-bold">${{ totalGeneral() | number:'1.0-0':'es-CO' }} COP</span>
+      </div>
+    }
+
+    <hr>
+
+    <!-- Activo + orden -->
+    <div class="row g-2">
+      <div class="col-6">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="servicio-activo" formControlName="activo">
+          <label class="form-check-label small" for="servicio-activo">Activo</label>
+        </div>
+      </div>
+      <div class="col-6">
+        <label class="form-label small mb-1">Orden</label>
+        <input type="number" class="form-control form-control-sm" formControlName="orden">
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer d-flex justify-content-between">
+    <div>
+      @if (servicio()) {
+        @if (confirmDelete()) {
+          <button type="button" class="btn btn-sm btn-danger me-2" (click)="onEliminar()">
+            Confirmar eliminación
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmDelete.set(false)">
+            Cancelar
+          </button>
+        } @else {
+          <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmDelete.set(true)">
+            🗑️ Eliminar
+          </button>
+        }
+      }
+    </div>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cerrar.emit()">
+        Cancelar
+      </button>
+      <button type="submit" class="btn btn-sm btn-primary" [disabled]="form.invalid || saving()">
+        {{ saving() ? 'Guardando…' : 'Guardar' }}
+      </button>
+    </div>
+  </div>
+</form>

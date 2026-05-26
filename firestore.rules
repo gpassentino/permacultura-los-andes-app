@@ -40,5 +40,9 @@ service cloud.firestore {
       allow read, write: if isAuthorized();
     }
 
+    match /portafolioProyectos/{proyectoId} {
+      allow read, write: if isAuthorized();
+    }
+
   }
 }

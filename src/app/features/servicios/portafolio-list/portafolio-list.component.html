@@ -1,0 +1,138 @@
+@if (error()) {
+  <div class="alert alert-danger alert-dismissible mx-3 mt-2 mb-0 py-2" role="alert">
+    {{ error() }}
+    <button type="button" class="btn-close" (click)="error.set(null)" aria-label="Cerrar"></button>
+  </div>
+}
+
+<!-- Filter chips -->
+<div class="filter-chips px-3 pb-2 d-flex gap-2 flex-wrap">
+  <button class="chip" [class.chip--active]="chip() === 'todos'" (click)="chip.set('todos')">Todos</button>
+  <button class="chip" [class.chip--active]="chip() === 'destacados'" (click)="chip.set('destacados')">⭐ Destacados</button>
+  <button class="chip" [class.chip--active]="chip() === 'finca'" (click)="chip.set('finca')">Finca</button>
+  <button class="chip" [class.chip--active]="chip() === 'hogar'" (click)="chip.set('hogar')">Hogar</button>
+  <button class="chip" [class.chip--active]="chip() === 'parque'" (click)="chip.set('parque')">Parque</button>
+  <button class="chip" [class.chip--active]="chip() === 'parcelacion'" (click)="chip.set('parcelacion')">Parcelación</button>
+  <button class="chip" [class.chip--active]="chip() === 'comercial'" (click)="chip.set('comercial')">Comercial</button>
+</div>
+
+<!-- Multi-select toolbar -->
+<div class="px-3 pb-2 d-flex gap-2 align-items-center">
+  <button type="button"
+          class="btn btn-sm"
+          [class.btn-outline-secondary]="!multiSelectMode()"
+          [class.btn-secondary]="multiSelectMode()"
+          (click)="toggleMultiSelect()">
+    {{ multiSelectMode() ? '✕ Cancelar selección' : '☑️ Seleccionar varios' }}
+  </button>
+  @if (multiSelectMode()) {
+    <button type="button"
+            class="btn btn-sm btn-success"
+            [disabled]="selectedIds().size === 0"
+            (click)="copiarSeleccion()">
+      📋 Copiar selección ({{ selectedIds().size }})
+    </button>
+  }
+  @if (copiedToast()) {
+    <span class="text-success small fw-semibold">✓ Copiado</span>
+  }
+</div>
+
+@if (loading()) {
+  <div class="d-flex justify-content-center py-5">
+    <div class="spinner-border text-success" role="status">
+      <span class="visually-hidden">Cargando…</span>
+    </div>
+  </div>
+} @else {
+  <div class="px-3 pb-5">
+    @if (filtered().length === 0) {
+      <div class="text-center text-muted py-5">
+        <p class="mb-2">Aún no hay proyectos en tu portafolio.</p>
+        <p class="small mb-0">Empieza agregando uno con el botón <strong>+</strong>.</p>
+      </div>
+    } @else {
+      <div class="row g-3">
+        @for (p of filtered(); track p.id) {
+          <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm"
+                 [class.border-success]="multiSelectMode() && isSelected(p.id ?? '')"
+                 (click)="multiSelectMode() ? toggleSelected(p.id ?? '') : openEditar(p)"
+                 style="cursor: pointer;">
+
+              @if (fotoPortada(p)) {
+                <div class="ratio ratio-16x9 bg-light">
+                  <img [src]="fotoPortada(p)"
+                       [alt]="p.nombre"
+                       style="object-fit: cover;"
+                       class="card-img-top">
+                </div>
+              } @else {
+                <div class="ratio ratio-16x9 bg-light d-flex align-items-center justify-content-center">
+                  <span class="text-muted">Sin foto</span>
+                </div>
+              }
+
+              <div class="card-body">
+                <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                  <h2 class="h6 fw-bold mb-0">
+                    @if (p.destacado) { ⭐ }
+                    {{ p.nombre }}
+                  </h2>
+                  @if (multiSelectMode()) {
+                    <input type="checkbox"
+                           class="form-check-input"
+                           [checked]="isSelected(p.id ?? '')"
+                           (click)="$event.stopPropagation(); toggleSelected(p.id ?? '')"
+                           aria-label="Seleccionar proyecto">
+                  }
+                </div>
+
+                <div class="small text-muted mb-2">
+                  {{ TIPOS_PROYECTO_PORTAFOLIO_LABELS[p.tipoProyecto] }} · {{ p.ubicacion }} · {{ p.anio }}
+                </div>
+
+                @if (p.descripcion) {
+                  <p class="small mb-2" style="white-space: pre-line;">{{ p.descripcion }}</p>
+                }
+
+                <div class="small text-muted mb-2">
+                  📷 {{ p.fotos.length }} foto{{ p.fotos.length === 1 ? '' : 's' }}
+                </div>
+
+                @if (!multiSelectMode()) {
+                  <button type="button"
+                          class="btn btn-sm btn-outline-success w-100"
+                          (click)="$event.stopPropagation(); copiarUno(p)">
+                    📋 Copiar
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+}
+
+<button class="fab" type="button" (click)="openNuevo()" aria-label="Nuevo proyecto" title="Nuevo proyecto">
+  +
+</button>
+
+@if (showModal()) {
+  <div class="modal show d-block modal-overlay"
+       tabindex="-1" role="dialog" aria-modal="true"
+       (click)="onBackdropClick($event)">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <app-portafolio-form
+          [proyecto]="selected()"
+          (cerrar)="closeModal()"
+          (guardar)="onGuardar($event)"
+          (eliminar)="onEliminar($event)" />
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop show modal-backdrop-custom"></div>
+}

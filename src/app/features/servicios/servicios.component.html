@@ -1,0 +1,37 @@
+@if (seedError()) {
+  <div class="alert alert-danger alert-dismissible mx-3 mt-2 mb-0 py-2" role="alert">
+    {{ seedError() }}
+    <button type="button" class="btn-close" (click)="seedError.set(null)" aria-label="Cerrar"></button>
+  </div>
+}
+
+<div class="page-header px-3 pt-3 pb-2">
+  <h1 class="h5 fw-bold mb-0">🛠️ Servicios</h1>
+  <p class="text-muted small mb-0">Catálogo y portafolio del negocio</p>
+</div>
+
+<!-- ── Sub-tab toggle ── -->
+<div class="px-3 pb-2 pt-2">
+  <div class="btn-group w-100" role="group" aria-label="Pestañas">
+    <button type="button"
+            class="btn btn-sm"
+            [class.btn-primary]="activeTab() === 'servicios'"
+            [class.btn-outline-primary]="activeTab() !== 'servicios'"
+            (click)="activeTab.set('servicios')">
+      Catálogo
+    </button>
+    <button type="button"
+            class="btn btn-sm"
+            [class.btn-primary]="activeTab() === 'portafolio'"
+            [class.btn-outline-primary]="activeTab() !== 'portafolio'"
+            (click)="activeTab.set('portafolio')">
+      Portafolio
+    </button>
+  </div>
+</div>
+
+@if (activeTab() === 'servicios') {
+  <app-servicios-list />
+} @else {
+  <app-portafolio-list />
+}

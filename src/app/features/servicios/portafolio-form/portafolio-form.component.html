@@ -1,0 +1,162 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <div class="modal-header">
+    <h2 class="h6 fw-bold mb-0">
+      {{ proyecto() ? 'Editar proyecto' : 'Nuevo proyecto en portafolio' }}
+    </h2>
+    <button type="button" class="btn-close" (click)="cerrar.emit()" aria-label="Cerrar"></button>
+  </div>
+
+  <div class="modal-body">
+    <!-- Nombre -->
+    <div class="mb-3">
+      <label class="form-label small fw-semibold">Nombre del proyecto *</label>
+      <input type="text" class="form-control form-control-sm" formControlName="nombre">
+      @if (form.get('nombre')?.invalid && form.get('nombre')?.touched) {
+        <div class="text-danger small mt-1">El nombre es requerido.</div>
+      }
+    </div>
+
+    <!-- Descripción -->
+    <div class="mb-3">
+      <label class="form-label small fw-semibold">Descripción</label>
+      <textarea class="form-control form-control-sm" rows="3" formControlName="descripcion"></textarea>
+    </div>
+
+    <!-- Ubicación + Año -->
+    <div class="row g-2 mb-3">
+      <div class="col-12 col-md-7">
+        <label class="form-label small fw-semibold">Ubicación (municipio) *</label>
+        <input type="text" class="form-control form-control-sm" formControlName="ubicacion">
+      </div>
+      <div class="col-12 col-md-5">
+        <label class="form-label small fw-semibold">Año *</label>
+        <input type="number" class="form-control form-control-sm" formControlName="anio" min="2000" max="2099">
+      </div>
+    </div>
+
+    <!-- Tipo de proyecto -->
+    <div class="mb-3">
+      <label class="form-label small fw-semibold">Tipo de proyecto</label>
+      <select class="form-select form-select-sm" formControlName="tipoProyecto">
+        @for (t of TIPOS_PROYECTO_PORTAFOLIO; track t) {
+          <option [value]="t">{{ TIPOS_PROYECTO_PORTAFOLIO_LABELS[t] }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Destacado + orden -->
+    <div class="row g-2 mb-3">
+      <div class="col-6">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="proyecto-destacado" formControlName="destacado">
+          <label class="form-check-label small" for="proyecto-destacado">⭐ Destacado</label>
+        </div>
+      </div>
+      <div class="col-6">
+        <label class="form-label small mb-1">Orden</label>
+        <input type="number" class="form-control form-control-sm" formControlName="orden">
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- Photo manager -->
+    <div class="mb-2">
+      <h3 class="h6 fw-bold mb-1">Fotos ({{ fotos().length }}/{{ MAX_FOTOS }})</h3>
+      <p class="small text-muted mb-2">
+        La foto seleccionada como <strong>Portada</strong> aparece en la tarjeta del listado.
+      </p>
+    </div>
+
+    @if (fotoError()) {
+      <div class="alert alert-warning py-2 px-3 small mb-2">{{ fotoError() }}</div>
+    }
+
+    <div class="mb-3">
+      <input type="file"
+             class="form-control form-control-sm"
+             accept="image/*"
+             multiple
+             capture="environment"
+             [disabled]="uploading() || fotos().length >= MAX_FOTOS"
+             (change)="onFotoSeleccionada($event)">
+      @if (uploading()) {
+        <div class="small text-muted mt-1">
+          <div class="spinner-border spinner-border-sm text-success me-2" role="status"></div>
+          Subiendo…
+        </div>
+      }
+    </div>
+
+    @if (fotos().length > 0) {
+      <div class="row g-2 mb-3">
+        @for (f of fotos(); track f.storagePath; let i = $index) {
+          <div class="col-12 col-md-6">
+            <div class="card">
+              <div class="ratio ratio-16x9 bg-light">
+                <img [src]="f.url" [alt]="'Foto ' + (i + 1)"
+                     style="object-fit: cover;"
+                     class="card-img-top">
+              </div>
+              <div class="card-body py-2 px-2">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                  <div class="form-check m-0">
+                    <input class="form-check-input"
+                           type="radio"
+                           name="portada"
+                           [id]="'portada-' + i"
+                           [checked]="portadaIndex() === i"
+                           (change)="setPortada(i)">
+                    <label class="form-check-label small" [for]="'portada-' + i">
+                      Portada
+                    </label>
+                  </div>
+                  <button type="button"
+                          class="btn btn-sm btn-outline-danger"
+                          (click)="eliminarFoto(i)"
+                          aria-label="Eliminar foto">
+                    🗑️
+                  </button>
+                </div>
+                <input type="text"
+                       class="form-control form-control-sm"
+                       placeholder="Caption (opcional)"
+                       [value]="f.caption ?? ''"
+                       (input)="updateCaption(i, $any($event.target).value)">
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div class="modal-footer d-flex justify-content-between">
+    <div>
+      @if (proyecto()) {
+        @if (confirmDelete()) {
+          <button type="button" class="btn btn-sm btn-danger me-2" (click)="onEliminar()">
+            Confirmar eliminación
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="confirmDelete.set(false)">
+            Cancelar
+          </button>
+        } @else {
+          <button type="button" class="btn btn-sm btn-outline-danger" (click)="confirmDelete.set(true)">
+            🗑️ Eliminar
+          </button>
+        }
+      }
+    </div>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="cerrar.emit()">
+        Cancelar
+      </button>
+      <button type="submit"
+              class="btn btn-sm btn-primary"
+              [disabled]="form.invalid || saving() || uploading()">
+        {{ saving() ? 'Guardando…' : 'Guardar' }}
+      </button>
+    </div>
+  </div>
+</form>

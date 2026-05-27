@@ -50,47 +50,43 @@ describe('parseWebhookPayload', () => {
     expect(parseWebhookPayload(payload)).toEqual([]);
   });
 
-  it('parses a text message and pulls profile name from contacts[]', () => {
+  it('extracts contact info and pulls profile name from contacts[]', () => {
     const result = parseWebhookPayload(textPayload());
     expect(result).toHaveLength(1);
-    expect(result[0]).toMatchObject({
-      wamid: 'wamid.ABC123',
+    expect(result[0]).toEqual({
       fromPhone: '573001234567',
       profileName: 'Ana López',
-      messageType: 'text',
-      text: 'Hola, quiero info',
-      mediaUrl: null,
       location: null
     });
-    expect(result[0].timestamp.getTime()).toBe(1715000000 * 1000);
   });
 
-  it('parses a location message with lat/lng', () => {
+  it('extracts lat/lng from a location message', () => {
     const result = parseWebhookPayload(
       textPayload({ type: 'location', text: undefined, location: { latitude: 6.15, longitude: -75.4, name: 'Casa' } })
     );
-    expect(result[0].messageType).toBe('location');
     expect(result[0].location).toEqual({ lat: 6.15, lng: -75.4 });
-    expect(result[0].text).toBe('Casa');
   });
 
-  it('parses an image message with caption', () => {
+  it('ignores image captions and other message content', () => {
     const result = parseWebhookPayload(
       textPayload({ type: 'image', text: undefined, image: { id: 'media-1', caption: 'foto del jardín' } })
     );
-    expect(result[0].messageType).toBe('image');
-    expect(result[0].text).toBe('foto del jardín');
-    expect(result[0].mediaUrl).toBe('whatsapp-media:media-1');
+    // Only the contact info survives — no text, no mediaUrl
+    expect(result[0]).toEqual({
+      fromPhone: '573001234567',
+      profileName: 'Ana López',
+      location: null
+    });
   });
 
-  it('skips messages missing id or from', () => {
+  it('skips messages missing from', () => {
     const payload = {
       entry: [
         {
           changes: [
             {
               value: {
-                messages: [{ id: 'wamid.X', timestamp: '1' }, { from: '573001', timestamp: '1' }]
+                messages: [{ id: 'wamid.X', timestamp: '1' }]
               }
             }
           ]
@@ -98,16 +94,5 @@ describe('parseWebhookPayload', () => {
       ]
     };
     expect(parseWebhookPayload(payload)).toEqual([]);
-  });
-
-  it('falls back to current time when timestamp is invalid', () => {
-    const before = Date.now();
-    const result = parseWebhookPayload(textPayload({ timestamp: 'not-a-number' }));
-    expect(result[0].timestamp.getTime()).toBeGreaterThanOrEqual(before);
-  });
-
-  it('treats unknown message types as text', () => {
-    const result = parseWebhookPayload(textPayload({ type: 'audio' }));
-    expect(result[0].messageType).toBe('text');
   });
 });

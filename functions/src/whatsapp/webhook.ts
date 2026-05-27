@@ -4,7 +4,7 @@ import { logger } from 'firebase-functions/v2';
 import type { Response } from 'express';
 import { timingSafeEqual } from 'crypto';
 import { parseWebhookPayload, MalformedPayloadError } from './parse';
-import { processMessage } from './writer';
+import { processContact } from './writer';
 
 const WHATSAPP_WEBHOOK_SECRET = defineSecret('WHATSAPP_WEBHOOK_SECRET');
 
@@ -36,9 +36,9 @@ export const whatsappWebhook = onRequest(
       return;
     }
 
-    let messages;
+    let contacts;
     try {
-      messages = parseWebhookPayload(req.body);
+      contacts = parseWebhookPayload(req.body);
     } catch (err) {
       if (err instanceof MalformedPayloadError) {
         logger.warn('whatsapp.webhook.malformed', {
@@ -51,9 +51,9 @@ export const whatsappWebhook = onRequest(
       throw err;
     }
 
-    if (messages.length === 0) {
+    if (contacts.length === 0) {
       // Status updates, read receipts, etc. — we acknowledge but do nothing.
-      logger.info('whatsapp.webhook.no_messages', {
+      logger.info('whatsapp.webhook.no_contacts', {
         bodyPreview: JSON.stringify(req.body).slice(0, 500)
       });
       res.status(200).send('OK');
@@ -61,20 +61,20 @@ export const whatsappWebhook = onRequest(
     }
 
     logger.info('whatsapp.webhook.parsed', {
-      messageCount: messages.length,
-      wamids: messages.map((m) => m.wamid)
+      contactCount: contacts.length,
+      fromPhones: contacts.map((c) => c.fromPhone)
     });
 
     const results = [];
-    const errors: Array<{ wamid: string; error: string }> = [];
-    for (const msg of messages) {
+    const errors: Array<{ fromPhone: string; error: string }> = [];
+    for (const c of contacts) {
       try {
-        const result = await processMessage(msg);
+        const result = await processContact(c);
         results.push(result);
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        logger.error('whatsapp.message.failed', { wamid: msg.wamid, error: message });
-        errors.push({ wamid: msg.wamid, error: message });
+        logger.error('whatsapp.contact.failed', { fromPhone: c.fromPhone, error: message });
+        errors.push({ fromPhone: c.fromPhone, error: message });
       }
     }
 

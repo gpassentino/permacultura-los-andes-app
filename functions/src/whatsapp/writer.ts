@@ -1,31 +1,29 @@
-import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { logger } from 'firebase-functions/v2';
 import { normalizePhone } from '../lib/phone';
-import type { ParsedMessage } from './types';
+import type { ParsedContact } from './types';
 
 export interface WriteResult {
-  wamid: string;
+  fromPhone: string;
   contactId: string;
   action: 'created' | 'updated';
 }
 
 // Defaults applied to a new auto-created contact. Mirrors the schema in
-// src/app/shared/models/contacto.model.ts. lastMessageAt / lastSyncAt are set
-// via FieldValue.serverTimestamp() in the batch.
+// src/app/shared/models/contacto.model.ts.
 const NEW_CONTACT_DEFAULTS = {
-  whatsappLabel: 'NM',
-  status: 'nuevo_mensaje',
+  status: 'interesado',
   businessTypes: ['general'],
   location: {},
   kanbanCardIds: [] as string[],
   notas: ''
 };
 
-export async function processMessage(msg: ParsedMessage): Promise<WriteResult> {
+export async function processContact(c: ParsedContact): Promise<WriteResult> {
   const db = getFirestore();
-  const normalized = normalizePhone(msg.fromPhone);
+  const normalized = normalizePhone(c.fromPhone);
   if (!normalized) {
-    throw new Error(`unable to normalize phone: ${msg.fromPhone}`);
+    throw new Error(`unable to normalize phone: ${c.fromPhone}`);
   }
 
   const contactsCol = db.collection('contacts');
@@ -37,61 +35,27 @@ export async function processMessage(msg: ParsedMessage): Promise<WriteResult> {
   if (existing.empty) {
     contactRef = contactsCol.doc();
     action = 'created';
+    await contactRef.set({
+      ...NEW_CONTACT_DEFAULTS,
+      phone: c.fromPhone,
+      normalizedPhone: normalized,
+      name: c.profileName || c.fromPhone,
+      createdAt: FieldValue.serverTimestamp(),
+      ...(c.location ? { location: { coordinates: c.location } } : {})
+    });
   } else {
     contactRef = existing.docs[0].ref;
     action = 'updated';
-  }
-
-  const messageRef = contactRef.collection('messages').doc(msg.wamid);
-  const batch = db.batch();
-
-  if (action === 'created') {
-    batch.set(contactRef, {
-      ...NEW_CONTACT_DEFAULTS,
-      phone: msg.fromPhone,
-      normalizedPhone: normalized,
-      name: msg.profileName || msg.fromPhone,
-      createdAt: FieldValue.serverTimestamp(),
-      lastMessageAt: FieldValue.serverTimestamp(),
-      lastSyncAt: FieldValue.serverTimestamp()
-    });
-  } else {
-    const parentUpdate: Record<string, unknown> = {
-      lastMessageAt: FieldValue.serverTimestamp(),
-      lastSyncAt: FieldValue.serverTimestamp()
-    };
-    if (msg.location) {
-      parentUpdate['location.coordinates'] = msg.location;
+    if (c.location) {
+      await contactRef.update({ 'location.coordinates': c.location });
     }
-    batch.update(contactRef, parentUpdate);
   }
 
-  // For new contacts, fold location into the initial set() so we don't issue
-  // a second update for the same doc.
-  if (action === 'created' && msg.location) {
-    batch.update(contactRef, { 'location.coordinates': msg.location });
-  }
-
-  // setDoc with wamid as the doc ID makes Make.com retries idempotent —
-  // a re-delivered message simply overwrites the same doc with identical data.
-  batch.set(messageRef, {
-    text: msg.text,
-    timestamp: Timestamp.fromDate(msg.timestamp),
-    fromContact: true,
-    messageType: msg.messageType,
-    mediaUrl: msg.mediaUrl,
-    wamid: msg.wamid
-  });
-
-  await batch.commit();
-
-  logger.info('whatsapp.message.processed', {
-    wamid: msg.wamid,
+  logger.info('whatsapp.contact.processed', {
     contactId: contactRef.id,
     action,
-    messageType: msg.messageType,
-    hasLocation: !!msg.location
+    hasLocation: !!c.location
   });
 
-  return { wamid: msg.wamid, contactId: contactRef.id, action };
+  return { fromPhone: c.fromPhone, contactId: contactRef.id, action };
 }

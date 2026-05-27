@@ -32,27 +32,19 @@ export interface WhatsAppContactProfile {
   profile?: { name?: string };
 }
 
-export type WhatsAppMessageType = 'text' | 'image' | 'location' | 'document' | string;
-
 export interface WhatsAppIncomingMessage {
   id?: string;
   from?: string;
-  timestamp?: string; // unix seconds as a string
-  type?: WhatsAppMessageType;
-  text?: { body?: string };
-  image?: { id?: string; mime_type?: string; sha256?: string; caption?: string };
-  document?: { id?: string; mime_type?: string; filename?: string; caption?: string };
+  timestamp?: string;
+  type?: string;
   location?: { latitude?: number; longitude?: number; name?: string; address?: string };
 }
 
-// Internal normalized form passed to the writer.
-export interface ParsedMessage {
-  wamid: string;
+// Internal normalized form passed to the writer. We only persist the contact
+// itself (phone, name, optionally location) — message content is intentionally
+// dropped to reduce Make.com op cost and Firestore storage.
+export interface ParsedContact {
   fromPhone: string;
   profileName: string;
-  timestamp: Date;
-  messageType: 'text' | 'image' | 'location' | 'document';
-  text: string;
-  mediaUrl: string | null;
   location: { lat: number; lng: number } | null;
 }

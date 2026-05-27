@@ -34,10 +34,6 @@
         <span class="stat-value">{{ totalContactos() }}</span>
         <span class="stat-label">Total</span>
       </div>
-      <div class="stat-chip stat-chip--nm">
-        <span class="stat-value">{{ totalNuevos() }}</span>
-        <span class="stat-label">Nuevos</span>
-      </div>
       <div class="stat-chip stat-chip--ld">
         <span class="stat-value">{{ totalLeads() }}</span>
         <span class="stat-label">Leads</span>
@@ -167,18 +163,8 @@
                   }
                 </div>
 
-                <!-- Row 3: WA label + last message + actions -->
-                <div class="d-flex justify-content-between align-items-center">
-                  <div class="d-flex gap-2 align-items-center">
-                    <span class="badge badge-wa-label text-truncate" style="max-width: 130px;">
-                      {{ contacto.whatsappLabel }}
-                    </span>
-                    <span class="text-muted fs-tiny">
-                      {{ contacto.lastMessageAt | date:'d MMM':'':'es-CO' }}
-                    </span>
-                  </div>
-
-                  <!-- Quick action buttons -->
+                <!-- Row 3: actions -->
+                <div class="d-flex justify-content-end align-items-center">
                   <div class="d-flex gap-1" (click)="$event.stopPropagation()">
                     <a [href]="whatsappHref(contacto.phone)"
                        target="_blank" rel="noopener"

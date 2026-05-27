@@ -12,15 +12,14 @@ function makeContacto(overrides: Partial<Contacto> = {}): Contacto {
   return {
     id: 'c1',
     phone: '3001234567',
+    normalizedPhone: '3001234567',
     name: 'Juan',
-    whatsappLabel: 'LD | Paisajismo',
     businessTypes: ['paisajismo'],
     status: 'lead',
     location: { city: 'El Retiro', address: 'Vereda X' },
     notas: 'Notas',
+    kanbanCardIds: [],
     createdAt: new Date(),
-    lastMessageAt: new Date(),
-    lastSyncAt: new Date(),
     ...overrides,
   };
 }
@@ -139,7 +138,7 @@ describe('ContactoFormComponent', () => {
       expect(c.form.get('name')?.value).toBe('Juan');
       expect(c.form.get('city')?.value).toBe('El Retiro');
       expect(c.form.get('address')?.value).toBe('Vereda X');
-      expect(c.form.get('whatsappLabel')?.value).toBe('LD | Paisajismo');
+      expect(c.form.get('status')?.value).toBe('lead');
     });
 
     it('pre-populates selectedTypes from businessTypes', () => {

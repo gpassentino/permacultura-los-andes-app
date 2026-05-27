@@ -42,8 +42,6 @@
         </div>
         <p class="text-muted small mb-0">
           {{ contacto()!.phone }}
-          <span class="mx-1">·</span>
-          💬 {{ lastMessageRelative(contacto()!.lastMessageAt) }}
         </p>
       </div>
       <button class="btn btn-outline-primary btn-sm flex-shrink-0" (click)="openEditModal()">
@@ -71,12 +69,6 @@
       }
     </div>
 
-    <!-- ── Mensajes ── -->
-    <section class="border-top pb-3">
-      <h2 class="section-heading px-3 pt-3 mb-2">💬 Mensajes</h2>
-      <app-message-history [contactId]="contacto()!.id!" />
-    </section>
-
     <!-- ── Información (incl. Academia) ── -->
     <section class="border-top px-3 pt-3 pb-5">
       <h2 class="section-heading mb-3">📋 Información</h2>
@@ -91,12 +83,6 @@
             </span>
           }
         </div>
-      </div>
-
-      <!-- Etiqueta WA -->
-      <div class="info-section mb-3">
-        <div class="info-label">Etiqueta WhatsApp</div>
-        <span class="badge-wa-label badge mt-1">{{ contacto()!.whatsappLabel }}</span>
       </div>
 
       <!-- Ubicación -->
@@ -197,8 +183,6 @@
         <div class="info-label">Metadatos</div>
         <div class="mt-1 text-muted small">
           <div>Creado: {{ contacto()!.createdAt | date:'d MMM yyyy, h:mm a':'':'es-CO' }}</div>
-          <div>Último mensaje: {{ contacto()!.lastMessageAt | date:'d MMM yyyy, h:mm a':'':'es-CO' }}</div>
-          <div>Última sincronización: {{ contacto()!.lastSyncAt | date:'d MMM yyyy, h:mm a':'':'es-CO' }}</div>
         </div>
       </div>
 

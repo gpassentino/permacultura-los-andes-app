@@ -3,7 +3,7 @@ import { BehaviorSubject } from 'rxjs';
 import { Auth } from '@angular/fire/auth';
 import { Firestore } from '@angular/fire/firestore';
 import { ContactoService } from './contacto.service';
-import { Contacto, WhatsAppMessage } from '../shared/models/contacto.model';
+import { Contacto } from '../shared/models/contacto.model';
 
 const {
   mockCollectionData, mockDocData, mockAddDoc, mockUpdateDoc, mockDeleteDoc,
@@ -74,14 +74,11 @@ describe('ContactoService', () => {
           id: '1',
           phone: '3001234567',
           name: 'Juan',
-          whatsappLabel: 'LD | Paisajismo',
           businessTypes: ['paisajismo'],
           status: 'lead',
           location: { city: 'El Retiro' },
           notas: 'Note',
-          createdAt:     { toDate: () => now },
-          lastMessageAt: { toDate: () => now },
-          lastSyncAt:    { toDate: () => now },
+          createdAt: { toDate: () => now },
         },
       ]);
       mockCollectionData.mockReturnValue(data);
@@ -101,10 +98,7 @@ describe('ContactoService', () => {
           id: '2',
           phone: '',
           name: '',
-          // most fields missing
           createdAt: null,
-          lastMessageAt: null,
-          lastSyncAt: null,
         },
       ]);
       mockCollectionData.mockReturnValue(data);
@@ -112,8 +106,7 @@ describe('ContactoService', () => {
       const out: Contacto[] = [];
       service.getContactos().subscribe(c => out.push(...c));
 
-      expect(out[0].whatsappLabel).toBe('NM');
-      expect(out[0].status).toBe('nuevo_mensaje');
+      expect(out[0].status).toBe('interesado');
       expect(out[0].businessTypes).toEqual([]);
       expect(out[0].location).toEqual({});
       expect(out[0].createdAt).toBeInstanceOf(Date);
@@ -129,8 +122,6 @@ describe('ContactoService', () => {
         phone: '300',
         name: 'Maria',
         createdAt: { toDate: () => now },
-        lastMessageAt: { toDate: () => now },
-        lastSyncAt: { toDate: () => now },
       });
       mockDocData.mockReturnValue(data);
 
@@ -155,7 +146,7 @@ describe('ContactoService', () => {
   });
 
   describe('addContacto', () => {
-    it('calls addDoc with server timestamps and returns new id', async () => {
+    it('calls addDoc with server timestamp and returns new id', async () => {
       const id = await service.addContacto({ name: 'Nuevo', phone: '300' });
       expect(mockAddDoc).toHaveBeenCalled();
       const payload = mockAddDoc.mock.calls[0][1];
@@ -163,23 +154,19 @@ describe('ContactoService', () => {
         name: 'Nuevo',
         phone: '300',
         createdAt: 'SERVER_TS',
-        lastMessageAt: 'SERVER_TS',
-        lastSyncAt: 'SERVER_TS',
       });
       expect(id).toBe('new-id');
     });
 
-    it('strips id/createdAt/lastMessageAt/lastSyncAt from incoming data', async () => {
+    it('strips id/createdAt from incoming data', async () => {
       await service.addContacto({
         name: 'X',
         id: 'should-be-stripped',
         createdAt: new Date(),
-        lastMessageAt: new Date(),
-        lastSyncAt: new Date(),
       } as Partial<Contacto>);
       const payload = mockAddDoc.mock.calls[0][1] as Record<string, unknown>;
       expect(payload['id']).toBeUndefined();
-      // server timestamps used, not the Date instances we passed
+      // server timestamp used, not the Date instance we passed
       expect(payload['createdAt']).toBe('SERVER_TS');
     });
 
@@ -192,11 +179,11 @@ describe('ContactoService', () => {
   });
 
   describe('updateContacto', () => {
-    it('calls updateDoc with lastSyncAt server timestamp', async () => {
+    it('calls updateDoc with the patch', async () => {
       await service.updateContacto('id-1', { name: 'Updated' });
       expect(mockUpdateDoc).toHaveBeenCalled();
       const payload = mockUpdateDoc.mock.calls[0][1];
-      expect(payload).toMatchObject({ name: 'Updated', lastSyncAt: 'SERVER_TS' });
+      expect(payload).toMatchObject({ name: 'Updated' });
     });
   });
 
@@ -204,73 +191,6 @@ describe('ContactoService', () => {
     it('calls deleteDoc', async () => {
       await service.deleteContacto('id-1');
       expect(mockDeleteDoc).toHaveBeenCalled();
-    });
-  });
-
-  describe('getMessages', () => {
-    it('maps Firestore messages to WhatsAppMessage with Date timestamp', () => {
-      const now = new Date();
-      const data = new BehaviorSubject([
-        {
-          id: 'm1',
-          text: 'Hola',
-          timestamp: { toDate: () => now },
-          fromContact: true,
-          messageType: 'text',
-        },
-      ]);
-      mockCollectionData.mockReturnValue(data);
-
-      const out: WhatsAppMessage[] = [];
-      service.getMessages('contact-1').subscribe(m => out.push(...m));
-
-      expect(out[0].text).toBe('Hola');
-      expect(out[0].timestamp).toBeInstanceOf(Date);
-      expect(out[0].fromContact).toBe(true);
-    });
-
-    it('applies defaults when fields missing', () => {
-      const data = new BehaviorSubject([
-        { id: 'm2', text: '', timestamp: null, fromContact: undefined, messageType: undefined },
-      ]);
-      mockCollectionData.mockReturnValue(data);
-
-      const out: WhatsAppMessage[] = [];
-      service.getMessages('contact-1').subscribe(m => out.push(...m));
-
-      expect(out[0].fromContact).toBe(true);
-      expect(out[0].messageType).toBe('text');
-      expect(out[0].timestamp).toBeInstanceOf(Date);
-    });
-  });
-
-  describe('addMessage', () => {
-    it('adds message and updates parent lastMessageAt', async () => {
-      await service.addMessage('contact-1', { text: 'Hi', fromContact: false });
-      expect(mockAddDoc).toHaveBeenCalled();
-      const msgPayload = mockAddDoc.mock.calls[0][1];
-      expect(msgPayload).toMatchObject({
-        text: 'Hi',
-        fromContact: false,
-        messageType: 'text',
-        mediaUrl: null,
-        timestamp: 'SERVER_TS',
-      });
-
-      expect(mockUpdateDoc).toHaveBeenCalled();
-      const parentPayload = mockUpdateDoc.mock.calls[0][1];
-      expect(parentPayload).toMatchObject({ lastMessageAt: 'SERVER_TS' });
-    });
-
-    it('uses defaults when message fields are missing', async () => {
-      await service.addMessage('contact-1', {});
-      const msgPayload = mockAddDoc.mock.calls[0][1];
-      expect(msgPayload).toMatchObject({
-        text: '',
-        fromContact: false,
-        messageType: 'text',
-        mediaUrl: null,
-      });
     });
   });
 });

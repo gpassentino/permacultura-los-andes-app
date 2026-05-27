@@ -5,7 +5,7 @@ import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
   Contacto,
-  WHATSAPP_LABELS, ESTADOS_CONTACTO, ESTADOS_CONTACTO_LABELS,
+  ESTADOS_CONTACTO, ESTADOS_CONTACTO_LABELS,
   TIPOS_NEGOCIO, TIPOS_NEGOCIO_LABELS, MUNICIPIOS,
   TipoNegocio
 } from '../../../shared/models/contacto.model';
@@ -25,12 +25,11 @@ export class ContactoFormComponent implements OnInit {
   readonly eliminar = output<string>();
 
   // Expose constants to template
-  readonly WHATSAPP_LABELS        = WHATSAPP_LABELS;
-  readonly ESTADOS_CONTACTO       = ESTADOS_CONTACTO;
+  readonly ESTADOS_CONTACTO        = ESTADOS_CONTACTO;
   readonly ESTADOS_CONTACTO_LABELS = ESTADOS_CONTACTO_LABELS;
-  readonly TIPOS_NEGOCIO          = TIPOS_NEGOCIO;
-  readonly TIPOS_NEGOCIO_LABELS   = TIPOS_NEGOCIO_LABELS;
-  readonly MUNICIPIOS             = MUNICIPIOS;
+  readonly TIPOS_NEGOCIO           = TIPOS_NEGOCIO;
+  readonly TIPOS_NEGOCIO_LABELS    = TIPOS_NEGOCIO_LABELS;
+  readonly MUNICIPIOS              = MUNICIPIOS;
 
   private fb              = inject(FormBuilder);
   private contactoService = inject(ContactoService);
@@ -38,8 +37,7 @@ export class ContactoFormComponent implements OnInit {
   form = this.fb.group({
     name:             ['', Validators.required],
     phone:            ['', [Validators.required, Validators.pattern(/^\+?[\d\s\-()]{7,20}$/)]],
-    whatsappLabel:    ['NM'],
-    status:           ['nuevo_mensaje'],
+    status:           ['interesado'],
     city:             [''],
     address:          [''],
     notas:            [''],
@@ -60,7 +58,6 @@ export class ContactoFormComponent implements OnInit {
       this.form.patchValue({
         name:              c.name,
         phone:             c.phone,
-        whatsappLabel:     c.whatsappLabel,
         status:            c.status,
         city:              c.location.city ?? '',
         address:           c.location.address ?? '',
@@ -117,7 +114,6 @@ export class ContactoFormComponent implements OnInit {
     const data: Partial<Contacto> = {
       name:           v.name          ?? '',
       phone:          v.phone         ?? '',
-      whatsappLabel:  v.whatsappLabel as Contacto['whatsappLabel'],
       status:         v.status        as Contacto['status'],
       businessTypes:  types.length > 0 ? types : ['general'],
       location: {

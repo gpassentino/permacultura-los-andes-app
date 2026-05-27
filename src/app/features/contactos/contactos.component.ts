@@ -2,7 +2,6 @@ import {
   Component, inject, signal, computed, ChangeDetectionStrategy
 } from '@angular/core';
 import { Router } from '@angular/router';
-import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 
@@ -21,7 +20,7 @@ type QuickFilter = 'todos' | TipoNegocio | 'leads' | 'clientes';
 
 @Component({
   selector: 'app-contactos',
-  imports: [DatePipe, FormsModule, ContactoFormComponent],
+  imports: [FormsModule, ContactoFormComponent],
   templateUrl: './contactos.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -84,7 +83,6 @@ export class ContactosComponent {
   readonly totalContactos  = computed(() => this.contactos().length);
   readonly totalLeads      = computed(() => this.contactos().filter(c => c.status === 'lead').length);
   readonly totalClientes   = computed(() => this.contactos().filter(c => c.status === 'cliente').length);
-  readonly totalNuevos     = computed(() => this.contactos().filter(c => c.status === 'nuevo_mensaje').length);
 
   // ── Modal state ──────────────────────────────────────────────────────────────
   readonly showModal       = signal(false);
@@ -159,14 +157,12 @@ export class ContactosComponent {
 
   exportarCsv(): void {
     const columns: CsvColumn<Contacto>[] = [
-      { header: 'Nombre',         value: c => c.name },
-      { header: 'Teléfono',       value: c => c.phone },
-      { header: 'Estado',         value: c => ESTADOS_CONTACTO_LABELS[c.status] ?? c.status },
-      { header: 'Etiqueta WA',    value: c => c.whatsappLabel },
-      { header: 'Tipos',          value: c => c.businessTypes.map(t => TIPOS_NEGOCIO_LABELS[t] ?? t) },
-      { header: 'Ciudad',         value: c => c.location.city ?? '' },
-      { header: 'Último mensaje', value: c => c.lastMessageAt },
-      { header: 'Notas',          value: c => c.notas ?? '' },
+      { header: 'Nombre',   value: c => c.name },
+      { header: 'Teléfono', value: c => c.phone },
+      { header: 'Estado',   value: c => ESTADOS_CONTACTO_LABELS[c.status] ?? c.status },
+      { header: 'Tipos',    value: c => c.businessTypes.map(t => TIPOS_NEGOCIO_LABELS[t] ?? t) },
+      { header: 'Ciudad',   value: c => c.location.city ?? '' },
+      { header: 'Notas',    value: c => c.notas ?? '' },
     ];
     const today = new Date();
     const stamp = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;

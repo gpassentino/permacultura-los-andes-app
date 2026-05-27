@@ -78,16 +78,13 @@ export class ContactPickerComponent implements OnInit {
       phone:           event.data.phone           ?? '',
       normalizedPhone: '',
       name:            event.data.name            ?? '',
-      whatsappLabel:   event.data.whatsappLabel   ?? 'NM',
       businessTypes:   event.data.businessTypes   ?? ['general'],
-      status:          event.data.status          ?? 'nuevo_mensaje',
+      status:          event.data.status          ?? 'interesado',
       location:        event.data.location        ?? {},
       kanbanCardIds:   [],
       academiaHistory: event.data.academiaHistory,
       notas:           event.data.notas           ?? '',
-      createdAt:       new Date(),
-      lastMessageAt:   new Date(),
-      lastSyncAt:      new Date()
+      createdAt:       new Date()
     };
     this.pick(optimistic);
   }

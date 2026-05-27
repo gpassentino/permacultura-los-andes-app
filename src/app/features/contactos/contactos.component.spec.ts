@@ -15,15 +15,14 @@ function makeContacto(overrides: Partial<Contacto> = {}): Contacto {
   return {
     id: '1',
     phone: '3001234567',
+    normalizedPhone: '3001234567',
     name: 'Juan Pérez',
-    whatsappLabel: 'NM',
     businessTypes: [],
-    status: 'nuevo_mensaje',
+    status: 'interesado',
     location: {},
     notas: '',
+    kanbanCardIds: [],
     createdAt: new Date(),
-    lastMessageAt: new Date(),
-    lastSyncAt: new Date(),
     ...overrides,
   };
 }
@@ -182,14 +181,13 @@ describe('ContactosComponent', () => {
   describe('stats', () => {
     it('counts totals correctly', () => {
       contactosSubject.next([
-        makeContacto({ id: '1', status: 'nuevo_mensaje' }),
+        makeContacto({ id: '1', status: 'interesado' }),
         makeContacto({ id: '2', status: 'lead' }),
         makeContacto({ id: '3', status: 'lead' }),
         makeContacto({ id: '4', status: 'cliente' }),
       ]);
       const c = createComponent();
       expect(c.totalContactos()).toBe(4);
-      expect(c.totalNuevos()).toBe(1);
       expect(c.totalLeads()).toBe(2);
       expect(c.totalClientes()).toBe(1);
     });

@@ -1,0 +1,176 @@
+<div class="container-fluid px-3 py-3">
+
+  <!-- ── Error banner ── -->
+  @if (error()) {
+    <div class="alert alert-danger alert-dismissible">
+      {{ error() }}
+      <button type="button" class="btn-close" (click)="error.set(null)"></button>
+    </div>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════
+       RESUMEN GENERAL
+  ════════════════════════════════════════════════════════════ -->
+  @if (mainTab() === 'resumen') {
+    <h4 class="mb-3 fw-semibold">Contabilidad</h4>
+
+    <!-- Stat cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Total facturado</div>
+            <div class="fw-bold fs-6">{{ formatCOP(stats().totalFacturado) }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Total cobrado</div>
+            <div class="fw-bold fs-6 text-success">{{ formatCOP(stats().totalCobrado) }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Total gastos</div>
+            <div class="fw-bold fs-6 text-danger">{{ formatCOP(stats().totalGastos) }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body">
+            <div class="text-muted small mb-1">Utilidad Andrés</div>
+            <div class="fw-bold fs-6 text-primary">{{ formatCOP(stats().utilidadTotal) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Projects list -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white fw-semibold">Proyectos</div>
+      @if (proyectos().length === 0) {
+        <div class="card-body text-muted text-center py-5">
+          No hay proyectos registrados aún.<br>
+          <small>Los proyectos se crean desde las tarjetas del Tablero.</small>
+        </div>
+      } @else {
+        <div class="list-group list-group-flush">
+          @for (p of proyectos(); track p.id) {
+            <button
+              type="button"
+              class="list-group-item list-group-item-action d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2 py-3"
+              (click)="abrirProyecto(p)">
+              <div>
+                <div class="fw-semibold">{{ p.nombreCliente }}</div>
+                <div class="text-muted small">{{ p.categoria }}</div>
+              </div>
+              <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="badge {{ estadoBadge(p.estadoPago) }}">
+                  {{ estadoLabel(p.estadoPago) }}
+                </span>
+                <span class="text-muted small">
+                  Facturado: <strong>{{ formatCOP(p.resumen?.totalFacturado ?? 0) }}</strong>
+                </span>
+                <span class="text-muted small">
+                  Cobrado: <strong class="text-success">{{ formatCOP(p.resumen?.totalCobrado ?? 0) }}</strong>
+                </span>
+                <span class="text-muted small">
+                  Utilidad: <strong class="text-primary">{{ formatCOP(p.resumen?.utilidadAndres ?? 0) }}</strong>
+                </span>
+              </div>
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PROYECTO DETAIL
+  ════════════════════════════════════════════════════════════ -->
+  @if (mainTab() === 'proyecto' && proyectoActivo()) {
+    <!-- Header -->
+    <div class="d-flex align-items-center gap-2 mb-3">
+      <button class="btn btn-link p-0 text-secondary" (click)="volverAResumen()">
+        ← Volver
+      </button>
+      <div>
+        <h5 class="mb-0 fw-semibold">{{ proyectoActivo()!.nombreCliente }}</h5>
+        <small class="text-muted">{{ proyectoActivo()!.categoria }}</small>
+      </div>
+      <span class="badge ms-2 {{ estadoBadge(proyectoActivo()!.estadoPago) }}">
+        {{ estadoLabel(proyectoActivo()!.estadoPago) }}
+      </span>
+      @if (guardando()) {
+        <span class="spinner-border spinner-border-sm text-secondary ms-auto"></span>
+      }
+    </div>
+
+    <!-- Sub-tabs -->
+    <ul class="nav nav-tabs mb-3">
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="proyectoTab() === 'presupuesto'"
+                (click)="proyectoTab.set('presupuesto')">
+          Presupuesto
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="proyectoTab() === 'pagos'"
+                (click)="proyectoTab.set('pagos')">
+          Pagos
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="proyectoTab() === 'gastos'"
+                (click)="proyectoTab.set('gastos')">
+          Gastos
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" [class.active]="proyectoTab() === 'resumen_financiero'"
+                (click)="proyectoTab.set('resumen_financiero')">
+          Resumen
+        </button>
+      </li>
+    </ul>
+
+    <!-- Presupuesto tab -->
+    @if (proyectoTab() === 'presupuesto') {
+      <app-presupuesto-builder
+        [proyecto]="proyectoActivo()!"
+        [municipios]="municipios()"
+        (guardado)="onPresupuestoGuardado($event)">
+      </app-presupuesto-builder>
+    }
+
+    <!-- Pagos tab -->
+    @if (proyectoTab() === 'pagos') {
+      <app-pagos-logger
+        [proyecto]="proyectoActivo()!"
+        (pagoAgregado)="onPagoAgregado($event)"
+        (pagoEliminado)="onPagoEliminado($event)">
+      </app-pagos-logger>
+    }
+
+    <!-- Gastos tab -->
+    @if (proyectoTab() === 'gastos') {
+      <app-gastos-logger
+        [proyecto]="proyectoActivo()!"
+        (gastoAgregado)="onGastoAgregado($event)"
+        (gastoEliminado)="onGastoEliminado($event)">
+      </app-gastos-logger>
+    }
+
+    <!-- Resumen financiero tab -->
+    @if (proyectoTab() === 'resumen_financiero') {
+      <app-resumen-financiero [proyecto]="proyectoActivo()!">
+      </app-resumen-financiero>
+    }
+  }
+
+</div>

@@ -1,0 +1,106 @@
+<!-- Summary bar -->
+<div class="row g-2 mb-3">
+  <div class="col-4">
+    <div class="card border-0 bg-light h-100">
+      <div class="card-body py-2">
+        <div class="text-muted small">Total facturado</div>
+        <div class="fw-bold">{{ formatCOP(totalFacturado()) }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card border-0 bg-success bg-opacity-10 h-100">
+      <div class="card-body py-2">
+        <div class="text-muted small">Cobrado</div>
+        <div class="fw-bold text-success">{{ formatCOP(totalCobrado()) }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card border-0 bg-warning bg-opacity-10 h-100">
+      <div class="card-body py-2">
+        <div class="text-muted small">Pendiente</div>
+        <div class="fw-bold text-warning">{{ formatCOP(pendiente()) }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Pagos list -->
+@if (proyecto().pagos.length === 0) {
+  <p class="text-muted text-center py-3">No hay pagos registrados.</p>
+} @else {
+  <div class="list-group mb-3">
+    @for (pago of proyecto().pagos; track pago.id) {
+      <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <span class="badge bg-secondary me-2">{{ tipoLabel(pago.tipo) }}</span>
+          <strong>{{ formatCOP(pago.monto) }}</strong>
+          <span class="text-muted small ms-2">
+            {{ pago.metodo }}
+            @if (pago.fecha) { · {{ pago.fecha | date:'dd/MM/yyyy' }} }
+          </span>
+          @if (pago.notas) {
+            <div class="text-muted small">{{ pago.notas }}</div>
+          }
+        </div>
+        <button class="btn btn-link btn-sm text-danger p-0" (click)="eliminar(pago.id)">✕</button>
+      </div>
+    }
+  </div>
+}
+
+<!-- Add pago form -->
+@if (mostrarForm()) {
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-white fw-semibold">Registrar pago</div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-muted">Tipo</label>
+          <select class="form-select form-select-sm"
+                  [value]="nuevo().tipo"
+                  (change)="updateNuevo({ tipo: $any($event.target).value })">
+            @for (t of TIPOS_PAGO; track t) {
+              <option [value]="t">{{ tipoLabel(t) }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-muted">Monto (COP)</label>
+          <input type="number" class="form-control form-control-sm"
+                 [value]="nuevo().monto"
+                 (change)="updateNuevo({ monto: +$any($event.target).value })">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-muted">Fecha</label>
+          <input type="date" class="form-control form-control-sm"
+                 [value]="nuevo().fecha ? (nuevo().fecha! | date:'yyyy-MM-dd') : ''"
+                 (change)="parseFecha($any($event.target).value)">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-muted">Método</label>
+          <select class="form-select form-select-sm"
+                  [value]="nuevo().metodo"
+                  (change)="updateNuevo({ metodo: $any($event.target).value })">
+            @for (m of METODOS_PAGO; track m) {
+              <option [value]="m">{{ m }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label small text-muted">Notas</label>
+          <input type="text" class="form-control form-control-sm"
+                 [value]="nuevo().notas"
+                 (change)="updateNuevo({ notas: $any($event.target).value })">
+        </div>
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-success btn-sm" (click)="agregar()">Guardar pago</button>
+        <button class="btn btn-outline-secondary btn-sm" (click)="mostrarForm.set(false)">Cancelar</button>
+      </div>
+    </div>
+  </div>
+} @else {
+  <button class="btn btn-outline-success btn-sm" (click)="abrirForm()">+ Registrar pago</button>
+}

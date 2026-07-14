@@ -1,0 +1,80 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="fw-semibold">Total gastos: <span class="text-danger">{{ formatCOP(totalGastos) }}</span></div>
+</div>
+
+@if (proyecto().gastos.length === 0) {
+  <p class="text-muted text-center py-3">No hay gastos registrados.</p>
+} @else {
+  <div class="list-group mb-3">
+    @for (gasto of proyecto().gastos; track gasto.id) {
+      <div class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <span class="badge bg-light text-dark border me-2">{{ tipoLabels[gasto.tipo] ?? gasto.tipo }}</span>
+          <strong>{{ formatCOP(gasto.subtotal) }}</strong>
+          <span class="text-muted small ms-2">
+            {{ gasto.descripcion }}
+            @if (gasto.cantidad > 1) { · {{ gasto.cantidad }} × {{ formatCOP(gasto.valorUnitario) }} }
+          </span>
+          @if (gasto.notas) {
+            <div class="text-muted small">{{ gasto.notas }}</div>
+          }
+        </div>
+        <button class="btn btn-link btn-sm text-danger p-0" (click)="eliminar(gasto.id)">✕</button>
+      </div>
+    }
+  </div>
+}
+
+@if (mostrarForm()) {
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-white fw-semibold">Registrar gasto</div>
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-muted">Tipo</label>
+          <select class="form-select form-select-sm"
+                  [value]="nuevo().tipo"
+                  (change)="onTipoChange($any($event.target).value)">
+            @for (t of TIPOS_GASTO; track t) {
+              <option [value]="t">{{ tipoLabels[t] ?? t }}</option>
+            }
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-muted">Descripción</label>
+          <input type="text" class="form-control form-control-sm"
+                 [value]="nuevo().descripcion"
+                 (change)="updateNuevo({ descripcion: $any($event.target).value })">
+        </div>
+        <div class="col-4 col-md-2">
+          <label class="form-label small text-muted">Cantidad</label>
+          <input type="number" class="form-control form-control-sm" min="1"
+                 [value]="nuevo().cantidad"
+                 (change)="updateNuevo({ cantidad: +$any($event.target).value })">
+        </div>
+        <div class="col-4 col-md-2">
+          <label class="form-label small text-muted">Valor unitario</label>
+          <input type="number" class="form-control form-control-sm" min="0"
+                 [value]="nuevo().valorUnitario"
+                 (change)="updateNuevo({ valorUnitario: +$any($event.target).value })">
+        </div>
+        <div class="col-4 col-md-2 d-flex flex-column justify-content-end">
+          <label class="form-label small text-muted">Subtotal</label>
+          <div class="fw-bold text-danger">{{ formatCOP(nuevo().subtotal) }}</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label small text-muted">Notas</label>
+          <input type="text" class="form-control form-control-sm"
+                 [value]="nuevo().notas"
+                 (change)="updateNuevo({ notas: $any($event.target).value })">
+        </div>
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-danger btn-sm" (click)="agregar()">Guardar gasto</button>
+        <button class="btn btn-outline-secondary btn-sm" (click)="mostrarForm.set(false)">Cancelar</button>
+      </div>
+    </div>
+  </div>
+} @else {
+  <button class="btn btn-outline-danger btn-sm" (click)="mostrarForm.set(true)">+ Registrar gasto</button>
+}

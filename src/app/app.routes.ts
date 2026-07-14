@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './features/auth/auth.guard';
+import { accountingGuard } from './features/auth/accounting.guard';
 
 export const routes: Routes = [
   {
@@ -40,6 +41,11 @@ export const routes: Routes = [
     path: 'calendario',
     loadComponent: () => import('./features/calendario/calendario.component').then(m => m.CalendarioComponent),
     canActivate: [authGuard]
+  },
+  {
+    path: 'contabilidad',
+    loadComponent: () => import('./features/contabilidad/contabilidad.component').then(m => m.ContabilidadComponent),
+    canActivate: [authGuard, accountingGuard]
   },
   { path: '', redirectTo: '/tablero', pathMatch: 'full' },
   { path: '**', redirectTo: '/tablero' }

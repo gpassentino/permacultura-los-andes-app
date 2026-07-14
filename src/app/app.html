@@ -44,6 +44,15 @@
           Calendario
         </a>
       </li>
+      @if (esContabilidad()) {
+        <li class="nav-item">
+          <a class="nav-link px-2"
+             routerLink="/contabilidad"
+             routerLinkActive="fw-semibold text-primary">
+            Contabilidad
+          </a>
+        </li>
+      }
     </ul>
     <div class="d-flex align-items-center gap-3">
       <span class="text-muted small">{{ user()?.email }}</span>
@@ -93,6 +102,14 @@
       <span class="nav-icon">📅</span>
       <small>Calendario</small>
     </a>
+    @if (esContabilidad()) {
+      <a routerLink="/contabilidad"
+         routerLinkActive="active"
+         class="bottom-nav-item d-flex flex-column align-items-center text-decoration-none gap-1 py-2">
+        <span class="nav-icon">💰</span>
+        <small>Cuentas</small>
+      </a>
+    }
     <button class="bottom-nav-item btn btn-link d-flex flex-column align-items-center gap-1 py-2 text-decoration-none"
             (click)="authService.cerrarSesion()">
       <span class="nav-icon">🚪</span>

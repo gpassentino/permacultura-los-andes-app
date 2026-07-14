@@ -1,0 +1,65 @@
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header bg-white fw-semibold">Resumen financiero</div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0">
+      <tbody>
+        <tr>
+          <td class="text-muted">Total facturado</td>
+          <td class="text-end fw-semibold">{{ formatCOP(resumen().totalFacturado) }}</td>
+        </tr>
+        <tr>
+          <td class="text-muted ps-3">· Anticipo esperado (50%)</td>
+          <td class="text-end text-muted small">{{ formatCOP(anticipoEsperado()) }}</td>
+        </tr>
+        <tr>
+          <td class="text-muted ps-3">· Pago final esperado (50%)</td>
+          <td class="text-end text-muted small">{{ formatCOP(finalEsperado()) }}</td>
+        </tr>
+        <tr class="table-light">
+          <td class="text-success">Total cobrado</td>
+          <td class="text-end fw-bold text-success">{{ formatCOP(resumen().totalCobrado) }}</td>
+        </tr>
+        <tr>
+          <td class="text-warning">Pendiente por cobrar</td>
+          <td class="text-end fw-semibold text-warning">{{ formatCOP(pendiente()) }}</td>
+        </tr>
+        <tr><td colspan="2"><hr class="my-1"></td></tr>
+        <tr>
+          <td class="text-muted">Total gastos</td>
+          <td class="text-end fw-semibold text-danger">{{ formatCOP(resumen().totalGastos) }}</td>
+        </tr>
+        <tr class="table-light">
+          <td class="fw-semibold">Utilidad bruta</td>
+          <td class="text-end fw-bold">{{ formatCOP(resumen().utilidadBruta) }}</td>
+        </tr>
+        @if (proyecto().presupuesto.estebanAplica) {
+          <tr>
+            <td class="text-muted">Comisión Esteban ({{ proyecto().presupuesto.estebanPorcentaje }}%)</td>
+            <td class="text-end text-danger">− {{ formatCOP(resumen().comisionEsteban) }}</td>
+          </tr>
+        }
+        <tr class="table-success">
+          <td class="fw-bold">Utilidad de Andrés</td>
+          <td class="text-end fw-bold fs-6">{{ formatCOP(resumen().utilidadAndres) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pagos breakdown -->
+@if (proyecto().pagos.length > 0) {
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white fw-semibold">Historial de pagos</div>
+    <div class="list-group list-group-flush">
+      @for (pago of proyecto().pagos; track pago.id) {
+        <div class="list-group-item d-flex justify-content-between">
+          <span class="text-muted small">{{ pago.tipo }} · {{ pago.metodo }}
+            @if (pago.fecha) { · {{ pago.fecha | date:'dd/MM/yyyy' }} }
+          </span>
+          <strong class="text-success">{{ formatCOP(pago.monto) }}</strong>
+        </div>
+      }
+    </div>
+  </div>
+}

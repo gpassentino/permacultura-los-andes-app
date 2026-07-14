@@ -1,0 +1,436 @@
+<!-- Vista toggle -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="btn-group btn-group-sm">
+    <button class="btn" [class.btn-dark]="vista()==='interna'" [class.btn-outline-dark]="vista()!=='interna'"
+            (click)="vista.set('interna')">Vista interna</button>
+    <button class="btn" [class.btn-primary]="vista()==='cliente'" [class.btn-outline-primary]="vista()!=='cliente'"
+            (click)="vista.set('cliente')">Vista cliente</button>
+  </div>
+  <button class="btn btn-success btn-sm" (click)="guardar()">Guardar presupuesto</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     VISTA INTERNA
+══════════════════════════════════════════════════════════ -->
+@if (vista() === 'interna') {
+
+  <!-- Esteban / Sofia flags -->
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="esteban"
+                   [checked]="p().estebanAplica"
+                   (change)="update({ estebanAplica: $any($event.target).checked })">
+            <label class="form-check-label" for="esteban">
+              Esteban trajo este cliente ({{ p().estebanPorcentaje }}% de la utilidad)
+            </label>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-muted">Fee Sofía (COP)</label>
+          <input type="number" class="form-control form-control-sm"
+                 [value]="p().sofiaFee"
+                 (change)="update({ sofiaFee: +$any($event.target).value })">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label small text-muted">Notas internas</label>
+          <input type="text" class="form-control form-control-sm"
+                 [value]="p().notas"
+                 (change)="update({ notas: $any($event.target).value })">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DESIGN CARDS ── -->
+  @if (esDiseno()) {
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white fw-semibold">Tarifa</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-6 col-md-4">
+            <label class="form-label small text-muted">Tarifa estándar (COP)</label>
+            <input type="number" class="form-control form-control-sm bg-light"
+                   [value]="p().tarifaBase" readonly>
+          </div>
+          <div class="col-6 col-md-4">
+            <label class="form-label small text-muted">Tarifa ajustada cliente (COP)</label>
+            <input type="number" class="form-control form-control-sm"
+                   [value]="p().tarifaAjustada"
+                   (change)="update({ tarifaAjustada: +$any($event.target).value })">
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── IMPLEMENTATION CARDS ── -->
+  @if (!esDiseno()) {
+    <!-- Diseño + Dirección -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white fw-semibold">Diseño y Dirección</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label small text-muted">Diseño del sitio (COP)</label>
+            <input type="number" class="form-control form-control-sm"
+                   [value]="p().disenioSitio"
+                   (change)="update({ disenioSitio: +$any($event.target).value })">
+          </div>
+          <div class="col-6">
+            <label class="form-label small text-muted">Dirección de obra (COP)</label>
+            <input type="number" class="form-control form-control-sm"
+                   [value]="p().direccionObra"
+                   (change)="update({ direccionObra: +$any($event.target).value })">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Workers -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white fw-semibold">Mano de obra</div>
+      <div class="card-body">
+        <div class="row g-3 mb-2 align-items-end">
+          <div class="col-6 col-md-3">
+            <label class="form-label small text-muted">Carlos — días</label>
+            <input type="number" class="form-control form-control-sm" min="0"
+                   [value]="p().diasCarlos"
+                   (change)="update({ diasCarlos: +$any($event.target).value })">
+            <div class="form-text">{{ formatCOP(p().diasCarlos * TARIFA_CARLOS_DIA) }}</div>
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label small text-muted">Pastrana — días</label>
+            <input type="number" class="form-control form-control-sm" min="0"
+                   [value]="p().diasPastrana"
+                   (change)="update({ diasPastrana: +$any($event.target).value })">
+            <div class="form-text">{{ formatCOP(p().diasPastrana * TARIFA_PASTRANA) }}</div>
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label small text-muted">Ayudantes — cantidad</label>
+            <input type="number" class="form-control form-control-sm" min="0"
+                   [value]="p().numAyudantes"
+                   (change)="update({ numAyudantes: +$any($event.target).value })">
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label small text-muted">Ayudantes — días</label>
+            <input type="number" class="form-control form-control-sm" min="0"
+                   [value]="p().diasAyudantes"
+                   (change)="update({ diasAyudantes: +$any($event.target).value })">
+            <div class="form-text">{{ formatCOP(p().numAyudantes * p().diasAyudantes * TARIFA_AYUDANTE) }}</div>
+          </div>
+        </div>
+
+        <!-- Other workers -->
+        @for (l of p().trabajadoresOtros; track l.id) {
+          <div class="row g-2 align-items-end mb-1">
+            <div class="col-5">
+              <input type="text" class="form-control form-control-sm" placeholder="Nombre trabajador"
+                     [value]="l.descripcion"
+                     (change)="actualizarLinea('trabajadoresOtros', l.id, 'descripcion', $any($event.target).value)">
+            </div>
+            <div class="col-2">
+              <input type="number" class="form-control form-control-sm" placeholder="Días" min="0"
+                     [value]="l.cantidad"
+                     (change)="actualizarLinea('trabajadoresOtros', l.id, 'cantidad', +$any($event.target).value)">
+            </div>
+            <div class="col-3">
+              <input type="number" class="form-control form-control-sm" placeholder="$/día" min="0"
+                     [value]="l.valorUnitario"
+                     (change)="actualizarLinea('trabajadoresOtros', l.id, 'valorUnitario', +$any($event.target).value)">
+            </div>
+            <div class="col-1 text-muted small">{{ formatCOP(l.subtotal) }}</div>
+            <div class="col-1">
+              <button class="btn btn-link btn-sm text-danger p-0" (click)="eliminarLinea('trabajadoresOtros', l.id)">✕</button>
+            </div>
+          </div>
+        }
+        <button class="btn btn-outline-secondary btn-sm mt-1" (click)="agregarLinea('trabajadoresOtros')">
+          + Agregar trabajador
+        </button>
+      </div>
+    </div>
+
+    <!-- Plants -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white fw-semibold">Material vegetal</div>
+      <div class="card-body">
+        @for (l of p().plantas; track l.id) {
+          <div class="row g-1 align-items-end mb-2">
+            <div class="col-12 col-md-3">
+              <input type="text" class="form-control form-control-sm" placeholder="Árbol"
+                     [value]="l.nombreArbol"
+                     (change)="actualizarPlanta(l.id, 'nombreArbol', $any($event.target).value)">
+            </div>
+            <div class="col-12 col-md-3">
+              <input type="text" class="form-control form-control-sm" placeholder="Planta / variedad"
+                     [value]="l.nombrePlanta"
+                     (change)="actualizarPlanta(l.id, 'nombrePlanta', $any($event.target).value)">
+            </div>
+            <div class="col-3 col-md-1">
+              <input type="number" class="form-control form-control-sm" placeholder="Cant." min="0"
+                     [value]="l.cantidad"
+                     (change)="actualizarPlanta(l.id, 'cantidad', +$any($event.target).value)">
+            </div>
+            <div class="col-4 col-md-2">
+              <select class="form-select form-select-sm"
+                      [value]="l.tamanioBolsa"
+                      (change)="actualizarPlanta(l.id, 'tamanioBolsa', $any($event.target).value)">
+                @for (t of TAMANIOS_BOLSA; track t) {
+                  <option [value]="t">{{ t }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-5 col-md-2">
+              <input type="number" class="form-control form-control-sm" placeholder="$/und" min="0"
+                     [value]="l.precioUnitario"
+                     (change)="actualizarPlanta(l.id, 'precioUnitario', +$any($event.target).value)">
+            </div>
+            <div class="col-8 col-md-1 text-muted small">{{ formatCOP(l.subtotal) }}</div>
+            <div class="col-4 col-md-auto">
+              <button class="btn btn-link btn-sm text-danger p-0" (click)="eliminarPlanta(l.id)">✕</button>
+            </div>
+          </div>
+        }
+        <button class="btn btn-outline-secondary btn-sm mt-1" (click)="agregarPlanta()">
+          + Agregar planta
+        </button>
+        <div class="text-end text-muted small mt-2">Total plantas: {{ formatCOP(totalPlantas) }}</div>
+      </div>
+    </div>
+
+    <!-- Insumos -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white fw-semibold">Insumos</div>
+      <div class="card-body">
+        <div class="row g-3 mb-2">
+          <div class="col-4 col-md-2">
+            <label class="form-label small text-muted">Bocashi (bultos)</label>
+            <input type="number" class="form-control form-control-sm" min="0"
+                   [value]="p().bocashiBultos"
+                   (change)="update({ bocashiBultos: +$any($event.target).value })">
+          </div>
+          <div class="col-4 col-md-2">
+            <label class="form-label small text-muted">$/bulto</label>
+            <input type="number" class="form-control form-control-sm" min="0"
+                   [value]="p().bocashiPrecioUnitario"
+                   (change)="update({ bocashiPrecioUnitario: +$any($event.target).value })">
+          </div>
+          <div class="col-4 col-md-2 d-flex align-items-end">
+            <span class="text-muted small">{{ formatCOP(p().bocashiBultos * p().bocashiPrecioUnitario) }}</span>
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label small text-muted">Fertilizantes total (COP)</label>
+            <input type="number" class="form-control form-control-sm" min="0"
+                   [value]="p().fertilizantesTotal"
+                   (change)="update({ fertilizantesTotal: +$any($event.target).value })">
+          </div>
+          <div class="col-3 col-md-1">
+            <label class="form-label small text-muted">Microorg. (kg)</label>
+            <input type="number" class="form-control form-control-sm" min="0"
+                   [value]="p().microorganismosKg"
+                   (change)="update({ microorganismosKg: +$any($event.target).value })">
+          </div>
+          <div class="col-3 col-md-2">
+            <label class="form-label small text-muted">$/kg microorg.</label>
+            <input type="number" class="form-control form-control-sm" min="0"
+                   [value]="p().microorganismosPrecioUnitario"
+                   (change)="update({ microorganismosPrecioUnitario: +$any($event.target).value })">
+          </div>
+        </div>
+
+        @for (l of p().insumosOtros; track l.id) {
+          <div class="row g-2 align-items-end mb-1">
+            <div class="col-5">
+              <input type="text" class="form-control form-control-sm" placeholder="Descripción"
+                     [value]="l.descripcion"
+                     (change)="actualizarLinea('insumosOtros', l.id, 'descripcion', $any($event.target).value)">
+            </div>
+            <div class="col-2">
+              <input type="number" class="form-control form-control-sm" placeholder="Cant." min="0"
+                     [value]="l.cantidad"
+                     (change)="actualizarLinea('insumosOtros', l.id, 'cantidad', +$any($event.target).value)">
+            </div>
+            <div class="col-3">
+              <input type="number" class="form-control form-control-sm" placeholder="Valor unit." min="0"
+                     [value]="l.valorUnitario"
+                     (change)="actualizarLinea('insumosOtros', l.id, 'valorUnitario', +$any($event.target).value)">
+            </div>
+            <div class="col-1 text-muted small">{{ formatCOP(l.subtotal) }}</div>
+            <div class="col-1">
+              <button class="btn btn-link btn-sm text-danger p-0" (click)="eliminarLinea('insumosOtros', l.id)">✕</button>
+            </div>
+          </div>
+        }
+        <button class="btn btn-outline-secondary btn-sm mt-1" (click)="agregarLinea('insumosOtros')">
+          + Agregar insumo
+        </button>
+      </div>
+    </div>
+
+    <!-- Logística -->
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white fw-semibold">Logística</div>
+      <div class="card-body">
+        @for (l of p().logistica; track l.id) {
+          <div class="row g-2 align-items-end mb-1">
+            <div class="col-5">
+              <input type="text" class="form-control form-control-sm" placeholder="Descripción"
+                     [value]="l.descripcion"
+                     (change)="actualizarLinea('logistica', l.id, 'descripcion', $any($event.target).value)">
+            </div>
+            <div class="col-2">
+              <input type="number" class="form-control form-control-sm" placeholder="Cant." min="0"
+                     [value]="l.cantidad"
+                     (change)="actualizarLinea('logistica', l.id, 'cantidad', +$any($event.target).value)">
+            </div>
+            <div class="col-3">
+              <input type="number" class="form-control form-control-sm" placeholder="Valor unit." min="0"
+                     [value]="l.valorUnitario"
+                     (change)="actualizarLinea('logistica', l.id, 'valorUnitario', +$any($event.target).value)">
+            </div>
+            <div class="col-1 text-muted small">{{ formatCOP(l.subtotal) }}</div>
+            <div class="col-1">
+              <button class="btn btn-link btn-sm text-danger p-0" (click)="eliminarLinea('logistica', l.id)">✕</button>
+            </div>
+          </div>
+        }
+        <button class="btn btn-outline-secondary btn-sm mt-1" (click)="agregarLinea('logistica')">
+          + Agregar logística
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Viáticos (shown for all card types) -->
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-white fw-semibold">Viáticos</div>
+    <div class="card-body">
+      <div class="row g-3 align-items-end mb-2">
+        <div class="col-12 col-md-4">
+          <label class="form-label small text-muted">Municipio</label>
+          <select class="form-select form-select-sm"
+                  [value]="p().viaticos?.municipio ?? ''"
+                  (change)="onMunicipioChange($any($event.target).value)">
+            <option value="">Sin viáticos</option>
+            @for (m of municipios(); track m.id) {
+              <option [value]="m.nombre">{{ m.nombre }}</option>
+            }
+          </select>
+        </div>
+        @if (p().viaticos) {
+          <div class="col-6 col-md-2">
+            <label class="form-label small text-muted">km ida+vuelta</label>
+            <input type="number" class="form-control form-control-sm" min="0"
+                   [value]="p().viaticos!.kmIdaVuelta"
+                   (change)="update({ viaticos: { ...p().viaticos!, kmIdaVuelta: +$any($event.target).value } }); recalcularViaticos()">
+          </div>
+          <div class="col-6 col-md-2">
+            <label class="form-label small text-muted">Peajes (total RT COP)</label>
+            <input type="number" class="form-control form-control-sm" min="0"
+                   [value]="p().viaticos!.costoPeajeTotal"
+                   (change)="update({ viaticos: { ...p().viaticos!, costoPeajeTotal: +$any($event.target).value } }); recalcularViaticos()">
+          </div>
+          <div class="col-6 col-md-2">
+            <label class="form-label small text-muted">Gasolina (COP)</label>
+            <input type="number" class="form-control form-control-sm" min="0"
+                   [value]="p().viaticos!.gastoGasolina"
+                   (change)="update({ viaticos: { ...p().viaticos!, gastoGasolina: +$any($event.target).value, total: +$any($event.target).value + p().viaticos!.costoPeajeTotal, editadoManualmente: true } })">
+          </div>
+          <div class="col-6 col-md-2">
+            <label class="form-label small text-muted">Total viáticos</label>
+            <input type="number" class="form-control form-control-sm fw-bold"
+                   [value]="p().viaticos!.total"
+                   (change)="update({ viaticos: { ...p().viaticos!, total: +$any($event.target).value, editadoManualmente: true } })">
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Internal total -->
+  <div class="card border-success border-2 shadow-sm mb-3">
+    <div class="card-body d-flex justify-content-between align-items-center">
+      <span class="fw-semibold">TOTAL FACTURADO AL CLIENTE</span>
+      <span class="fs-5 fw-bold text-success">{{ formatCOP(totalInterno()) }}</span>
+    </div>
+  </div>
+  <div class="card border-0 bg-light shadow-sm mb-3">
+    <div class="card-body d-flex justify-content-between align-items-center">
+      <span class="text-muted small">Fee Sofía</span>
+      <span class="text-danger small">− {{ formatCOP(p().sofiaFee) }}</span>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end mb-4">
+    <button class="btn btn-success" (click)="guardar()">Guardar presupuesto</button>
+  </div>
+}
+
+<!-- ══════════════════════════════════════════════════════════
+     VISTA CLIENTE
+══════════════════════════════════════════════════════════ -->
+@if (vista() === 'cliente') {
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header bg-white">
+      <strong>COTIZACIÓN — {{ proyecto().nombreCliente }}</strong><br>
+      <small class="text-muted">{{ proyecto().categoria }}</small>
+    </div>
+    <div class="card-body">
+      <table class="table table-sm table-borderless mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Ítem</th>
+            <th class="text-end">Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (esDiseno()) {
+            <tr>
+              <td>{{ proyecto().categoria }}</td>
+              <td class="text-end">{{ formatCOP(p().tarifaAjustada) }}</td>
+            </tr>
+          } @else {
+            @if (p().disenioSitio > 0) {
+              <tr><td>Diseño del sitio</td><td class="text-end">{{ formatCOP(p().disenioSitio) }}</td></tr>
+            }
+            @if (p().direccionObra > 0) {
+              <tr><td>Dirección de obra</td><td class="text-end">{{ formatCOP(p().direccionObra) }}</td></tr>
+            }
+            @if (totalManoObra > 0) {
+              <tr><td>Mano de obra</td><td class="text-end">{{ formatCOP(totalManoObra) }}</td></tr>
+            }
+            @if (totalPlantas > 0) {
+              <tr><td>Material vegetal</td><td class="text-end">{{ formatCOP(totalPlantas) }}</td></tr>
+            }
+            @if (totalInsumos > 0) {
+              <tr><td>Insumos</td><td class="text-end">{{ formatCOP(totalInsumos) }}</td></tr>
+            }
+            @if (totalLogistica > 0) {
+              <tr><td>Logística</td><td class="text-end">{{ formatCOP(totalLogistica) }}</td></tr>
+            }
+          }
+          @if (p().viaticos) {
+            <tr><td>Viáticos — {{ p().viaticos!.municipio }}</td><td class="text-end">{{ formatCOP(p().viaticos!.total) }}</td></tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr class="fw-bold border-top">
+            <td>TOTAL</td>
+            <td class="text-end">{{ formatCOP(totalCliente()) }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="card-footer bg-white text-muted small">
+      <strong>Términos de pago:</strong><br>
+      Anticipo 50% — {{ formatCOP(totalCliente() * 0.5) }} — al inicio del proyecto<br>
+      Pago final 50% — {{ formatCOP(totalCliente() * 0.5) }} — contra entrega<br>
+      @if (p().viaticos) {
+        El valor de los viáticos se cancela el día de la visita.
+      }
+    </div>
+  </div>
+}

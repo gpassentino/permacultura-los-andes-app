@@ -279,6 +279,25 @@
     <span></span>
   }
   <div class="d-flex gap-2">
+    @if (cliente() && esContabilidad()) {
+      @if (tieneProyecto()) {
+        <a class="btn btn-outline-success btn-sm"
+           routerLink="/contabilidad"
+           [queryParams]="{ clienteId: cliente()!.id }"
+           (click)="cerrar.emit()">
+          💰 Ver en Contabilidad
+        </a>
+      } @else {
+        <button type="button" class="btn btn-outline-success btn-sm"
+                [disabled]="creandoProyecto()"
+                (click)="crearProyecto()">
+          @if (creandoProyecto()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          }
+          💰 Activar Contabilidad
+        </button>
+      }
+    }
     <button type="button" class="btn btn-outline-secondary" (click)="cerrar.emit()">
       Cancelar
     </button>

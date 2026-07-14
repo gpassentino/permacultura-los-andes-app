@@ -41,5 +41,18 @@ service cloud.firestore {
       allow read, write: if isAuthorized();
     }
 
+    function isContabilidad() {
+      return request.auth != null &&
+             request.auth.token.email in ['gpassentino@gmail.com', 'anjuarci@gmail.com'];
+    }
+
+    match /proyectos/{proyectoId} {
+      allow read, write: if isContabilidad();
+    }
+
+    match /municipiosViaticos/{municipioId} {
+      allow read, write: if isContabilidad();
+    }
+
   }
 }

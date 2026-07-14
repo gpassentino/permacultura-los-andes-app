@@ -16,7 +16,9 @@ import {
 } from '../../../shared/models/cliente.model';
 import { Contacto } from '../../../shared/models/contacto.model';
 import { ContactoService } from '../../../services/contacto.service';
+import { ContabilidadService } from '../../../services/contabilidad.service';
 import { ContactPickerComponent } from '../../../shared/components/contact-picker/contact-picker.component';
+import { Auth } from '@angular/fire/auth';
 
 type Tab = 'detalles' | 'checklist';
 
@@ -36,8 +38,41 @@ export class ClienteModalComponent implements OnInit {
   readonly ESTADOS_CLIENTE    = ESTADOS_CLIENTE;
   readonly FASES_CHECKLIST    = FASES_CHECKLIST;
 
-  private fb              = inject(FormBuilder);
-  private contactoService = inject(ContactoService);
+  private fb                   = inject(FormBuilder);
+  private contactoService      = inject(ContactoService);
+  private auth                 = inject(Auth);
+  private contabilidadService  = inject(ContabilidadService);
+
+  readonly esContabilidad = computed(() =>
+    this.contabilidadService.isAccountingUser(this.auth.currentUser?.email)
+  );
+
+  readonly tieneProyecto   = signal(false);
+  readonly creandoProyecto = signal(false);
+
+  async verificarProyecto(): Promise<void> {
+    const c = this.cliente();
+    if (!c?.id || !this.esContabilidad()) return;
+    const proyectos = await firstValueFrom(this.contabilidadService.getProyectos());
+    this.tieneProyecto.set(proyectos.some(p => p.clienteId === c.id));
+  }
+
+  async crearProyecto(): Promise<void> {
+    const c = this.cliente();
+    if (!c?.id) return;
+    this.creandoProyecto.set(true);
+    try {
+      await this.contabilidadService.crearProyecto(
+        c.id,
+        c.contactoId,
+        c.nombre,
+        c.categoria
+      );
+      this.tieneProyecto.set(true);
+    } finally {
+      this.creandoProyecto.set(false);
+    }
+  }
 
   // The selected canonical Contacto (source of truth for name/phone)
   readonly contactoSeleccionado = signal<Contacto | null>(null);
@@ -101,6 +136,8 @@ export class ClienteModalComponent implements OnInit {
           if (contacto) this.contactoSeleccionado.set(contacto);
         });
       }
+      // Check if a Contabilidad proyecto already exists for this card
+      this.verificarProyecto();
     } else {
       // New card: default to Indefinido (empty checklist)
       this.checklist.set(buildChecklistFromTemplate('Indefinido'));

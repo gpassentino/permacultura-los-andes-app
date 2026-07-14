@@ -89,6 +89,17 @@ export class ContabilidadService {
     return ref.id;
   }
 
+  async resetearPresupuesto(proyectoId: string, categoria: CategoriaCliente, pagos: Pago[], gastos: Gasto[]): Promise<void> {
+    const presupuesto = presupuestoVacio(categoria);
+    const resumen = calcularResumen(presupuesto, pagos, gastos);
+    await updateDoc(doc(this.firestore, 'proyectos', proyectoId), {
+      presupuesto,
+      resumen,
+      estadoPago: 'sin_presupuesto',
+      actualizadoEn: serverTimestamp(),
+    });
+  }
+
   async actualizarPresupuesto(proyectoId: string, presupuesto: any, pagos: Pago[], gastos: Gasto[]): Promise<void> {
     const resumen = calcularResumen(presupuesto, pagos, gastos);
     await updateDoc(doc(this.firestore, 'proyectos', proyectoId), {

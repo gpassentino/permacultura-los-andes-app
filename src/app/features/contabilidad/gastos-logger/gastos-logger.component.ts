@@ -58,8 +58,10 @@ export class GastosLoggerComponent {
   }
 
   agregar(): void {
-    if (!this.nuevo().subtotal && !this.nuevo().valorUnitario) return;
-    this.gastoAgregado.emit(this.nuevo());
+    const g = this.nuevo();
+    const subtotal = g.cantidad * g.valorUnitario;
+    if (subtotal <= 0) return;
+    this.gastoAgregado.emit({ ...g, subtotal });
     this.mostrarForm.set(false);
   }
 

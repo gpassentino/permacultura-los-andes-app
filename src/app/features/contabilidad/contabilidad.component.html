@@ -144,7 +144,8 @@
       <app-presupuesto-builder
         [proyecto]="proyectoActivo()!"
         [municipios]="municipios()"
-        (guardado)="onPresupuestoGuardado($event)">
+        (guardado)="onPresupuestoGuardado($event)"
+        (reseteado)="onPresupuestoReseteado()">
       </app-presupuesto-builder>
     }
 

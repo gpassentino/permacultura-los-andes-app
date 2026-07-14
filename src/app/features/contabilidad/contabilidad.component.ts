@@ -31,11 +31,16 @@ export class ContabilidadComponent implements OnInit {
   readonly proyectos  = toSignal(this.contabilidadService.getProyectos(), { initialValue: [] });
   readonly municipios = toSignal(this.contabilidadService.getMunicipios(), { initialValue: [] });
 
-  readonly mainTab         = signal<MainTab>('resumen');
-  readonly proyectoTab     = signal<ProyectoTab>('presupuesto');
-  readonly proyectoActivo  = signal<Proyecto | null>(null);
-  readonly guardando       = signal(false);
-  readonly error           = signal<string | null>(null);
+  readonly mainTab            = signal<MainTab>('resumen');
+  readonly proyectoTab        = signal<ProyectoTab>('presupuesto');
+  readonly proyectoActivoId   = signal<string | null>(null);
+  readonly guardando          = signal(false);
+  readonly error              = signal<string | null>(null);
+
+  // Always reflects the latest Firestore state for the active project
+  readonly proyectoActivo = computed(() =>
+    this.proyectos().find(p => p.id === this.proyectoActivoId()) ?? null
+  );
 
   // ── Stats for resumen general ────────────────────────────────
   readonly stats = computed(() => {
@@ -61,14 +66,29 @@ export class ContabilidadComponent implements OnInit {
   }
 
   abrirProyecto(p: Proyecto): void {
-    this.proyectoActivo.set(p);
+    this.proyectoActivoId.set(p.id ?? null);
     this.proyectoTab.set('presupuesto');
     this.mainTab.set('proyecto');
   }
 
   volverAResumen(): void {
     this.mainTab.set('resumen');
-    this.proyectoActivo.set(null);
+    this.proyectoActivoId.set(null);
+  }
+
+  async onPresupuestoReseteado(): Promise<void> {
+    const p = this.proyectoActivo();
+    if (!p?.id) return;
+    if (!confirm('¿Borrar el presupuesto actual? Se perderán todos los valores ingresados.')) return;
+    this.guardando.set(true);
+    try {
+      await this.contabilidadService.resetearPresupuesto(p.id, p.categoria, p.pagos, p.gastos);
+      this.error.set(null);
+    } catch (e: any) {
+      this.error.set('Error al resetear el presupuesto.');
+    } finally {
+      this.guardando.set(false);
+    }
   }
 
   async onPresupuestoGuardado(presupuesto: any): Promise<void> {

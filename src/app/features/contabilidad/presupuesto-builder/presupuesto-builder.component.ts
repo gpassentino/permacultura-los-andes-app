@@ -28,6 +28,7 @@ export class PresupuestoBuilderComponent implements OnChanges {
   readonly proyecto   = input.required<Proyecto>();
   readonly municipios = input<MunicipioViatico[]>([]);
   readonly guardado   = output<PresupuestoInterno>();
+  readonly reseteado  = output<void>();
 
   private lastProyectoId: string | undefined;
 
@@ -57,6 +58,13 @@ export class PresupuestoBuilderComponent implements OnChanges {
 
   readonly totalInterno = computed(() => calcularSubtotal(this.p()));
 
+  readonly comisionEsteban = computed(() => {
+    const pr = this.p();
+    if (!pr.estebanAplica) return 0;
+    const utilidadBruta = calcularSubtotal(pr) - pr.sofiaFee;
+    return Math.round(utilidadBruta * pr.estebanPorcentaje / 100);
+  });
+
   readonly totalCliente = computed(() => {
     const pr = this.p();
     if (this.esDiseno()) return pr.tarifaAjustada + (pr.viaticos?.total ?? 0);
@@ -85,6 +93,10 @@ export class PresupuestoBuilderComponent implements OnChanges {
   }
 
   // ── Viáticos picker ────────────────────────────────────────
+  private roundUp5000(n: number): number {
+    return Math.ceil(n / 5000) * 5000;
+  }
+
   onMunicipioChange(nombre: string): void {
     if (!nombre) { this.update({ viaticos: null }); return; }
     const m = this.municipios().find(x => x.nombre === nombre);
@@ -94,8 +106,8 @@ export class PresupuestoBuilderComponent implements OnChanges {
       kmIdaVuelta: m.kmIdaVuelta,
       numPeajes: m.numPeajesIdaVuelta,
       costoPeajeTotal: m.costoPeajesTotalRT,
-      gastoGasolina: m.gastoGasolina,
-      total: m.total,
+      gastoGasolina: this.roundUp5000(m.gastoGasolina),
+      total: this.roundUp5000(m.total),
       editadoManualmente: false,
     };
     this.update({ viaticos: v });
@@ -104,8 +116,8 @@ export class PresupuestoBuilderComponent implements OnChanges {
   recalcularViaticos(): void {
     const v = this.p().viaticos;
     if (!v) return;
-    const gastoGasolina = v.kmIdaVuelta * 1200;
-    const total = gastoGasolina + v.costoPeajeTotal;
+    const gastoGasolina = this.roundUp5000(v.kmIdaVuelta * 1200);
+    const total = this.roundUp5000(gastoGasolina + v.costoPeajeTotal);
     this.update({ viaticos: { ...v, gastoGasolina, total, editadoManualmente: true } });
   }
 
@@ -159,12 +171,19 @@ export class PresupuestoBuilderComponent implements OnChanges {
   }
 
   // ── Generic field update ─────────────────────────────────────
-  update(partial: Partial<PresupuestoInterno>): void {
+  update(partial: Partial<PresupuestoInterno>, autoguardar = false): void {
     this.p.set({ ...this.p(), ...partial });
+    if (autoguardar) this.guardarDebounced();
   }
 
   guardar(): void {
     this.guardado.emit(this.p());
+  }
+
+  private debounceTimer: any;
+  guardarDebounced(): void {
+    clearTimeout(this.debounceTimer);
+    this.debounceTimer = setTimeout(() => this.guardado.emit(this.p()), 600);
   }
 
   formatCOP(n: number): string {

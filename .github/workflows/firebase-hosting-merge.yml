@@ -13,9 +13,11 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: npm ci && npm run build
-      - run: npm ci && npm run build
+          node-version: 22
+      - name: Build app
+        run: npm ci && npm run build
+      - name: Build functions
+        run: npm ci && npm run build
         working-directory: functions
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:

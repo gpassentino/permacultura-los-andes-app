@@ -4,16 +4,47 @@ export const TIPOS_SERVICIO = [
   'informe_vision',
   'fase_ruta1',
   'gran_escala_ruta2',
+  // Añadidos para el flujo de proyectos (PR a). Los valores anteriores no cambian.
+  'diseno_tecnico',
+  'ejecucion',
+  'acompanamiento',
+  'taller',
 ] as const;
 export type TipoServicio = typeof TIPOS_SERVICIO[number];
 
 export const TIPOS_SERVICIO_LABELS: Record<TipoServicio, string> = {
   asesoria_online:    'Asesoría Online',
   asesoria_in_situ:   'Asesoría In-Situ',
-  informe_vision:     'Informe de Visión / Conceptual',
+  informe_vision:     'Diseño conceptual',
   fase_ruta1:         'Ruta 1 — Implementación por Fases',
   gran_escala_ruta2:  'Ruta 2 — Diseño Gran Escala',
+  diseno_tecnico:     'Diseño técnico',
+  ejecucion:          'Ejecución',
+  acompanamiento:     'Acompañamiento',
+  taller:             'Taller',
 };
+
+/**
+ * Servicios que el flujo de proyectos necesita en el catálogo. Cada uno se
+ * identifica por su `tipo` (el id del documento no cambia). Dos de ellos
+ * reutilizan entradas existentes:
+ *   - "Diagnóstico y visita técnica" → `asesoria_in_situ` (Asesoría In-Situ)
+ *   - "Diseño conceptual"            → `informe_vision` (se renombra su `nombre`)
+ */
+export const TIPOS_SERVICIO_FLUJO = [
+  'asesoria_in_situ',
+  'informe_vision',
+  'diseno_tecnico',
+  'ejecucion',
+  'acompanamiento',
+  'taller',
+] as const satisfies readonly TipoServicio[];
+
+/** Tipos que activan el carril de ejecución del tablero. */
+export const TIPOS_SERVICIO_EJECUCION: readonly TipoServicio[] = ['ejecucion', 'acompanamiento'];
+
+/** Nombre que debe tener la entrada `informe_vision` en el catálogo. */
+export const NOMBRE_DISENO_CONCEPTUAL = 'Diseño conceptual';
 
 export const RUBROS = ['diseno', 'direccion_obra', 'mano_obra', 'insumos', 'logistica'] as const;
 export type Rubro = typeof RUBROS[number];

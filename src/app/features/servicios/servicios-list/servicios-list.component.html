@@ -9,7 +9,9 @@
 <div class="filter-chips px-3 pb-2 d-flex gap-2 flex-wrap">
   <button class="chip" [class.chip--active]="chip() === 'todos'" (click)="chip.set('todos')">Todos</button>
   <button class="chip" [class.chip--active]="chip() === 'asesorias'" (click)="chip.set('asesorias')">Asesorías</button>
-  <button class="chip" [class.chip--active]="chip() === 'informe'" (click)="chip.set('informe')">Informe</button>
+  <button class="chip" [class.chip--active]="chip() === 'diseno'" (click)="chip.set('diseno')">Diseño</button>
+  <button class="chip" [class.chip--active]="chip() === 'obra'" (click)="chip.set('obra')">Obra</button>
+  <button class="chip" [class.chip--active]="chip() === 'taller'" (click)="chip.set('taller')">Taller</button>
   <button class="chip" [class.chip--active]="chip() === 'ruta1'" (click)="chip.set('ruta1')">Ruta 1</button>
   <button class="chip" [class.chip--active]="chip() === 'ruta2'" (click)="chip.set('ruta2')">Ruta 2</button>
   <button class="chip" [class.chip--active]="chip() === 'inactivos'" (click)="chip.set('inactivos')">Inactivos</button>

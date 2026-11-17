@@ -9,7 +9,11 @@
     "test": "ng test --watch=false",
     "test:watch": "ng test",
     "migrate:clientes": "tsx scripts/migrate-clientes.ts",
-    "migrate:clientes:apply": "tsx scripts/migrate-clientes.ts --apply"
+    "migrate:clientes:apply": "tsx scripts/migrate-clientes.ts --apply",
+    "respaldo:firestore": "tsx scripts/respaldo-firestore.ts",
+    "migrate:flujo": "tsx scripts/migrate-proyectos-flujo.ts --dry-run",
+    "migrate:flujo:apply": "tsx scripts/migrate-proyectos-flujo.ts --apply",
+    "emulador": "firebase emulators:start --only firestore,auth,storage"
   },
   "private": true,
   "packageManager": "npm@11.11.0",

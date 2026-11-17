@@ -12,7 +12,7 @@ import {
 import { copyToClipboard } from '../../../shared/utils/clipboard';
 import { ServicioFormComponent } from '../servicio-form/servicio-form.component';
 
-type FilterChip = 'todos' | 'asesorias' | 'informe' | 'ruta1' | 'ruta2' | 'inactivos';
+type FilterChip = 'todos' | 'asesorias' | 'diseno' | 'obra' | 'taller' | 'ruta1' | 'ruta2' | 'inactivos';
 
 @Component({
   selector: 'app-servicios-list',
@@ -43,7 +43,9 @@ export class ServiciosListComponent {
     switch (c) {
       case 'todos':     return activos;
       case 'asesorias': return activos.filter(s => s.tipo === 'asesoria_online' || s.tipo === 'asesoria_in_situ');
-      case 'informe':   return activos.filter(s => s.tipo === 'informe_vision');
+      case 'diseno':    return activos.filter(s => s.tipo === 'informe_vision' || s.tipo === 'diseno_tecnico');
+      case 'obra':      return activos.filter(s => s.tipo === 'ejecucion' || s.tipo === 'acompanamiento');
+      case 'taller':    return activos.filter(s => s.tipo === 'taller');
       case 'ruta1':     return activos.filter(s => s.tipo === 'fase_ruta1');
       case 'ruta2':     return activos.filter(s => s.tipo === 'gran_escala_ruta2');
     }
@@ -142,6 +144,10 @@ export class ServiciosListComponent {
       case 'informe_vision':     return 'badge bg-warning-subtle text-warning-emphasis border border-warning-subtle';
       case 'fase_ruta1':         return 'badge bg-success-subtle text-success-emphasis border border-success-subtle';
       case 'gran_escala_ruta2':  return 'badge bg-primary-subtle text-primary-emphasis border border-primary-subtle';
+      case 'diseno_tecnico':     return 'badge bg-warning-subtle text-warning-emphasis border border-warning-subtle';
+      case 'ejecucion':          return 'badge bg-success-subtle text-success-emphasis border border-success-subtle';
+      case 'acompanamiento':     return 'badge bg-success-subtle text-success-emphasis border border-success-subtle';
+      case 'taller':             return 'badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle';
     }
   }
 }

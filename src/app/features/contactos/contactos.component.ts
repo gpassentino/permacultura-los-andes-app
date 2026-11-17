@@ -139,8 +139,11 @@ export class ContactosComponent {
     } catch (e) {
       if (e instanceof ContactoLinkedError) {
         const parts: string[] = [];
+        if ((e.counts.proyectos ?? 0) > 0) {
+          parts.push(`${e.counts.proyectos} proyecto(s) en el Tablero`);
+        }
         if (e.counts.clientes > 0) {
-          parts.push(`${e.counts.clientes} tarjeta(s) en el Tablero`);
+          parts.push(`${e.counts.clientes} registro(s) anterior(es) del Tablero`);
         }
         if (e.counts.participantes > 0) {
           parts.push(`${e.counts.participantes} inscripción(es) en Academia`);

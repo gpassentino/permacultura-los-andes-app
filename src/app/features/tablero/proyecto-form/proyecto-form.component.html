@@ -1,0 +1,91 @@
+<div class="modal show d-block modal-overlay" tabindex="-1" role="dialog" aria-modal="true"
+     aria-labelledby="nuevoProyectoTitulo">
+  <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold" id="nuevoProyectoTitulo">Nuevo proyecto</h5>
+        <button type="button" class="btn-close" (click)="cerrar.emit()" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        @if (error()) {
+          <div class="alert alert-danger py-2 small">{{ error() }}</div>
+        }
+
+        <!-- 1. Contacto -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold required-label">Contacto</label>
+          <app-contact-picker (seleccionado)="onContacto($event)" />
+          @if (intentoGuardar() && !contacto()) {
+            <div class="small text-danger mt-1">Elige o crea el contacto.</div>
+          }
+        </div>
+
+        <!-- 2. Proyecto -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold required-label" for="nombreProyecto">Nombre del proyecto</label>
+          <input id="nombreProyecto" type="text" class="form-control" placeholder="Ej.: Horizontes, La María · Pereira"
+                 [ngModel]="nombreProyecto()" (ngModelChange)="nombreProyecto.set($event)">
+          <div class="form-text">Un proyecto = un predio o encargo.</div>
+          @if (intentoGuardar() && !nombreProyecto().trim()) {
+            <div class="small text-danger">Escribe el nombre del proyecto.</div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold required-label" for="codigoProyecto">Código</label>
+          <input id="codigoProyecto" type="text" class="form-control font-monospace" maxlength="7"
+                 [ngModel]="codigo()" (ngModelChange)="onCodigo($event)"
+                 [class.is-invalid]="!codigoValido() || codigoEnUso()">
+          @if (!codigoValido()) {
+            <div class="invalid-feedback">Formato PLA-XXX (3 letras).</div>
+          } @else if (codigoEnUso()) {
+            <div class="invalid-feedback">Ese código ya está en uso.</div>
+          } @else {
+            <div class="form-text">Sugerido a partir del nombre. Puedes cambiarlo.</div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <span class="form-label fw-semibold d-block">Servicios</span>
+          <div class="d-flex flex-wrap gap-2">
+            @for (s of servicios(); track s.id) {
+              <input type="checkbox" class="btn-check" [id]="'srv-' + s.id" autocomplete="off"
+                     [checked]="servicioIds().includes(s.id)" (change)="toggleServicio(s.id)">
+              <label class="btn btn-sm btn-outline-secondary" [for]="'srv-' + s.id">{{ s.nombre }}</label>
+            }
+          </div>
+        </div>
+
+        <div class="row g-2">
+          <div class="col-12 col-sm-6">
+            <label class="form-label small fw-semibold" for="municipioProyecto">Municipio</label>
+            <input id="municipioProyecto" type="text" class="form-control" list="municipiosLista"
+                   [ngModel]="municipio()" (ngModelChange)="municipio.set($event)">
+            <datalist id="municipiosLista">
+              @for (m of MUNICIPIOS; track m) { <option [value]="m"></option> }
+            </datalist>
+          </div>
+          <div class="col-12 col-sm-6">
+            <label class="form-label small fw-semibold" for="etapaInicial">Etapa</label>
+            <select id="etapaInicial" class="form-select"
+                    [ngModel]="etapa()" (ngModelChange)="etapa.set($event)">
+              @for (e of ETAPAS_INICIALES; track e) {
+                <option [value]="e">{{ ETAPAS_FLUJO_LABELS[e] }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="cerrar.emit()">Cancelar</button>
+        <button type="button" class="btn btn-primary" [disabled]="guardando()" (click)="guardar()">
+          @if (guardando()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          Crear proyecto
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop show modal-backdrop-custom"></div>

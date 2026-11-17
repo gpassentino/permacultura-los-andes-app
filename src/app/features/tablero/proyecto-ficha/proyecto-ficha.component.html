@@ -1,0 +1,392 @@
+<div class="ficha-backdrop d-none d-md-block" (click)="cerrar.emit()"></div>
+<aside class="ficha-panel" role="dialog" aria-modal="true" [attr.aria-label]="'Ficha de ' + proyecto().nombreProyecto">
+
+  <!-- ── Encabezado ── -->
+  <header class="ficha-panel__header">
+    <div class="d-flex align-items-start gap-2">
+      <button type="button" class="btn btn-link text-body p-0 me-1 d-md-none" (click)="cerrar.emit()" aria-label="Volver">←</button>
+      <div class="min-w-0 flex-grow-1">
+        <div class="fw-bold text-truncate fs-6">{{ proyecto().nombreProyecto }}</div>
+        <div class="small text-muted text-truncate">
+          <span class="codigo-proyecto me-1">{{ proyecto().codigo }}</span>{{ proyecto().contactoNombre }}
+        </div>
+      </div>
+      <button type="button" class="btn-close d-none d-md-block" (click)="cerrar.emit()" aria-label="Cerrar"></button>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mt-2">
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="mover.emit('diseno')">
+        {{ ETAPAS_FLUJO_LABELS[proyecto().etapaFlujo] }} · Mover…
+      </button>
+      @if (proyecto().etapaEjecucion; as ej) {
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="mover.emit('ejecucion')">
+          Obra: {{ ETAPAS_EJECUCION_LABELS[ej] }} · Mover…
+        </button>
+      }
+    </div>
+
+    <ul class="nav nav-underline ficha-tabs mt-2" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button type="button" class="nav-link" role="tab" [class.active]="pestana() === 'ficha'"
+                [attr.aria-selected]="pestana() === 'ficha'" (click)="pestana.set('ficha')">Ficha</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button type="button" class="nav-link" role="tab" [class.active]="pestana() === 'documentos'"
+                [attr.aria-selected]="pestana() === 'documentos'" (click)="pestana.set('documentos')">
+          Documentos <span class="badge text-bg-light">{{ proyecto().documentos.length }}</span>
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button type="button" class="nav-link" role="tab" [class.active]="pestana() === 'historial'"
+                [attr.aria-selected]="pestana() === 'historial'" (click)="pestana.set('historial')">Historial</button>
+      </li>
+    </ul>
+  </header>
+
+  <div class="ficha-panel__body">
+    @if (error()) {
+      <div class="alert alert-danger alert-dismissible py-2 small" role="alert">
+        {{ error() }}
+        <button type="button" class="btn-close" (click)="error.set(null)" aria-label="Cerrar"></button>
+      </div>
+    }
+    @if (aviso()) {
+      <div class="alert alert-success alert-dismissible py-2 small" role="status">
+        {{ aviso() }}
+        <button type="button" class="btn-close" (click)="aviso.set(null)" aria-label="Cerrar"></button>
+      </div>
+    }
+
+    @switch (pestana()) {
+
+      <!-- ═══════════════ FICHA ═══════════════ -->
+      @case ('ficha') {
+
+        @if (revisar().length) {
+          <div class="alert alert-warning py-2 small">
+            <div class="fw-semibold mb-1">Revisar (viene de la migración)</div>
+            @for (r of revisar(); track r.clave) {
+              <div class="d-flex justify-content-between align-items-center gap-2">
+                <span>• {{ r.label }}</span>
+                <button type="button" class="btn btn-link btn-sm p-0" (click)="marcarRevisado(r.clave)">Listo</button>
+              </div>
+            }
+            <button type="button" class="btn btn-sm btn-outline-dark mt-2" (click)="marcarRevisado()">Marcar todo como revisado</button>
+          </div>
+        }
+
+        @if (proyecto().etapaFlujo === 'no_se_dio') {
+          <div class="alert alert-secondary py-2 small">No se dio · <strong>{{ motivoCierreLabel() }}</strong></div>
+        }
+
+        <!-- Contacto (solo lectura) -->
+        <section class="ficha-seccion">
+          <div class="ficha-seccion__titulo">Contacto</div>
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="min-w-0">
+              <div class="fw-semibold">{{ contacto()?.name || proyecto().contactoNombre || 'Sin contacto' }}</div>
+              <div class="small text-muted">{{ contacto()?.phone || proyecto().contactoTelefono }}</div>
+              @if (contacto()?.location?.city) {
+                <div class="small text-muted">{{ contacto()!.location.city }}</div>
+              }
+              @if (proyecto().contactoDesdeRespaldo) {
+                <div class="small text-warning-emphasis">Dato del registro anterior: el contacto no se encontró en Contactos.</div>
+              }
+            </div>
+            <div class="d-flex flex-column align-items-end gap-1 flex-shrink-0">
+              @if (whatsappUrl()) {
+                <a [href]="whatsappUrl()" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-success">WhatsApp</a>
+              }
+              @if (proyecto().contactoId) {
+                <a [routerLink]="['/contactos', proyecto().contactoId]" class="btn btn-sm btn-link p-0">✏️ Editar en Contactos</a>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Código -->
+        <section class="ficha-seccion">
+          <div class="ficha-seccion__titulo">Código</div>
+          @if (editandoCodigo()) {
+            <div class="input-group input-group-sm">
+              <input type="text" class="form-control font-monospace" maxlength="7" aria-label="Nuevo código"
+                     [ngModel]="nuevoCodigo()" (ngModelChange)="nuevoCodigo.set($event.toUpperCase())"
+                     [class.is-invalid]="!nuevoCodigoValido()">
+              <button type="button" class="btn btn-primary" [disabled]="!nuevoCodigoValido() || guardando()" (click)="guardarCodigo()">Guardar</button>
+              <button type="button" class="btn btn-outline-secondary" (click)="editandoCodigo.set(false)">Cancelar</button>
+            </div>
+          } @else {
+            <span class="codigo-proyecto codigo-proyecto--grande">{{ proyecto().codigo }}</span>
+            <button type="button" class="btn btn-link btn-sm" (click)="editarCodigo()">Cambiar</button>
+          }
+        </section>
+
+        <!-- Datos editables -->
+        <section class="ficha-seccion">
+          <div class="mb-2">
+            <label class="form-label small fw-semibold required-label" for="fNombre">Nombre del proyecto</label>
+            <input id="fNombre" type="text" class="form-control"
+                   [ngModel]="form().nombreProyecto" (ngModelChange)="set('nombreProyecto', $event)">
+          </div>
+
+          <div class="row g-2 mb-2">
+            <div class="col-7">
+              <label class="form-label small fw-semibold" for="fMunicipio">Municipio</label>
+              <input id="fMunicipio" type="text" class="form-control" list="fichaMunicipios"
+                     [ngModel]="form().municipio" (ngModelChange)="set('municipio', $event)">
+              <datalist id="fichaMunicipios">
+                @for (m of MUNICIPIOS; track m) { <option [value]="m"></option> }
+              </datalist>
+            </div>
+            <div class="col-5">
+              <label class="form-label small fw-semibold" for="fArea">Área (ha)</label>
+              <input id="fArea" type="text" inputmode="decimal" class="form-control" placeholder="4,2"
+                     [class.is-invalid]="!areaValida()"
+                     [ngModel]="form().areaHa" (ngModelChange)="set('areaHa', $event)">
+            </div>
+          </div>
+
+          <div class="mb-2">
+            <span class="form-label small fw-semibold d-block">Servicios</span>
+            <div class="d-flex flex-wrap gap-2">
+              @for (s of catalogo(); track s.id) {
+                <input type="checkbox" class="btn-check" [id]="'fsrv-' + s.id" autocomplete="off"
+                       [checked]="form().servicioIds.includes(s.id)" (change)="toggleServicio(s.id)">
+                <label class="btn btn-sm btn-outline-secondary" [for]="'fsrv-' + s.id">{{ s.nombre }}</label>
+              }
+            </div>
+          </div>
+
+          <div class="row g-2 mb-2">
+            <div class="col-7">
+              <label class="form-label small fw-semibold" for="fVisita">Visita técnica</label>
+              <select id="fVisita" class="form-select"
+                      [ngModel]="form().visitaTecnica" (ngModelChange)="set('visitaTecnica', $event)">
+                @for (v of ESTADOS_VISITA; track v) {
+                  <option [value]="v">{{ ESTADOS_VISITA_LABELS[v] }}</option>
+                }
+              </select>
+            </div>
+            @if (form().visitaTecnica !== 'no_aplica') {
+              <div class="col-5">
+                <label class="form-label small fw-semibold" for="fVisitaFecha">Fecha</label>
+                <input id="fVisitaFecha" type="date" class="form-control"
+                       [ngModel]="form().visitaFecha" (ngModelChange)="set('visitaFecha', $event)">
+              </div>
+            }
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label small fw-semibold" for="fDrive">Carpeta de Drive</label>
+            <div class="input-group">
+              <input id="fDrive" type="url" class="form-control" placeholder="https://drive.google.com/…"
+                     [ngModel]="form().carpetaDriveUrl" (ngModelChange)="set('carpetaDriveUrl', $event)">
+              @if (proyecto().carpetaDriveUrl) {
+                <a class="btn btn-outline-secondary" [href]="proyecto().carpetaDriveUrl" target="_blank" rel="noopener noreferrer">Abrir</a>
+              }
+            </div>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label small fw-semibold" for="fPaso">Próximo paso</label>
+            <div class="row g-2">
+              <div class="col-12 col-sm-8">
+                <input id="fPaso" type="text" class="form-control" placeholder="Ej.: Enviar cotización"
+                       [ngModel]="form().proximoPasoTexto" (ngModelChange)="set('proximoPasoTexto', $event)">
+              </div>
+              <div class="col-12 col-sm-4">
+                <input type="date" class="form-control" aria-label="Fecha del próximo paso"
+                       [ngModel]="form().proximoPasoFecha" (ngModelChange)="set('proximoPasoFecha', $event)">
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label small fw-semibold" for="fNotas">Notas</label>
+            <textarea id="fNotas" class="form-control" rows="3"
+                      [ngModel]="form().notas" (ngModelChange)="set('notas', $event)"></textarea>
+          </div>
+
+          @if (dirty()) {
+            <div class="ficha-guardar d-flex gap-2">
+              <button type="button" class="btn btn-primary flex-grow-1" [disabled]="!formValido() || guardando()" (click)="guardarFicha()">
+                Guardar cambios
+              </button>
+              <button type="button" class="btn btn-outline-secondary" (click)="descartar()">Descartar</button>
+            </div>
+          }
+        </section>
+
+        <!-- Siguiente fase -->
+        <section class="ficha-seccion">
+          <div class="ficha-seccion__titulo">Siguiente fase</div>
+          <p class="small text-muted mb-2">
+            Agrega el servicio de la siguiente fase a este mismo proyecto. Solo se crea un proyecto nuevo si es otro predio.
+          </p>
+          <div class="input-group">
+            <select class="form-select" aria-label="Servicio de la siguiente fase"
+                    [ngModel]="siguienteServicioId()" (ngModelChange)="siguienteServicioId.set($event)">
+              <option value="">Elige el servicio…</option>
+              @for (s of catalogo(); track s.id) {
+                <option [value]="s.id">{{ s.nombre }}</option>
+              }
+            </select>
+            <button type="button" class="btn btn-outline-primary" [disabled]="!siguienteServicioId() || guardando()"
+                    (click)="agregarSiguienteFase()">Agregar</button>
+          </div>
+        </section>
+
+        @if (proyecto().portafolioProyectoId) {
+          <section class="ficha-seccion small">
+            <a routerLink="/servicios">🖼️ Tiene ficha en Portafolio</a>
+          </section>
+        }
+
+        <!-- Datos anteriores -->
+        @if (clienteLegacy(); as c) {
+          <section class="ficha-seccion">
+            <details>
+              <summary class="ficha-seccion__titulo mb-0">Datos anteriores (solo lectura)</summary>
+              <dl class="row small mt-2 mb-2">
+                <dt class="col-5 text-muted fw-normal">Columna / categoría</dt>
+                <dd class="col-7">{{ c.estado }} · {{ c.categoria }}</dd>
+                <dt class="col-5 text-muted fw-normal">Último contacto</dt>
+                <dd class="col-7">{{ c.fechaUltimoContacto ? (c.fechaUltimoContacto | date:'d MMM yyyy') : '—' }}</dd>
+                <dt class="col-5 text-muted fw-normal">Inicio estimado</dt>
+                <dd class="col-7">{{ c.fechaEstimadaInicio ? (c.fechaEstimadaInicio | date:'d MMM yyyy') : '—' }}</dd>
+                @if (c.recordatorioMensaje || c.recordatorioFecha) {
+                  <dt class="col-5 text-muted fw-normal">Recordatorio</dt>
+                  <dd class="col-7">{{ c.recordatorioMensaje }} {{ c.recordatorioFecha ? '(' + (c.recordatorioFecha | date:'d MMM yyyy') + ')' : '' }}</dd>
+                }
+              </dl>
+              @if (checklistAnterior().length) {
+                <div class="small fw-semibold mb-1">Checklist</div>
+                <ul class="list-unstyled small mb-0">
+                  @for (i of checklistAnterior(); track $index) {
+                    <li [class.text-muted]="i.completado">
+                      {{ i.completado ? '☑' : '☐' }} {{ i.texto }} <span class="text-muted">· {{ i.fase }}</span>
+                    </li>
+                  }
+                </ul>
+              }
+            </details>
+          </section>
+        }
+
+        <div class="text-end mt-3">
+          <button type="button" class="btn btn-sm btn-outline-danger" [disabled]="guardando()" (click)="eliminar()">Eliminar proyecto</button>
+        </div>
+      }
+
+      <!-- ═══════════════ DOCUMENTOS ═══════════════ -->
+      @case ('documentos') {
+        @for (c of casillas(); track c.tipo) {
+          <div class="doc-casilla" [class.doc-casilla--vacia]="!c.documentos.length">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="me-1">{{ c.documentos.length ? '☑' : '☐' }}</span>
+                <span class="fw-semibold small">{{ c.label }}</span>
+                <span class="small text-muted"> · {{ ETAPAS_FLUJO_LABELS[c.etapa] }}</span>
+              </div>
+              <button type="button" class="btn btn-link btn-sm p-0" (click)="nuevoDocumento(c)">+ Agregar</button>
+            </div>
+            @for (d of c.documentos; track d.id) {
+              <div class="d-flex justify-content-between align-items-center small ms-4">
+                <a [href]="d.url" target="_blank" rel="noopener noreferrer" class="text-truncate">
+                  {{ d.nota || c.label }}@if (d.version) { · {{ d.version }} }
+                </a>
+                <span class="d-flex align-items-center gap-2 flex-shrink-0">
+                  <span class="text-muted">{{ d.fecha | date:'d MMM yy' }}</span>
+                  <button type="button" class="btn btn-link btn-sm p-0 text-danger" (click)="quitarDocumento(d)" aria-label="Quitar documento">✕</button>
+                </span>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="doc-casilla">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="fw-semibold small">Otros documentos</span>
+            <button type="button" class="btn btn-link btn-sm p-0" (click)="nuevoDocumento()">+ Agregar</button>
+          </div>
+          @for (d of otrosDocumentos(); track d.id) {
+            <div class="d-flex justify-content-between align-items-center small ms-4">
+              <a [href]="d.url" target="_blank" rel="noopener noreferrer" class="text-truncate">
+                {{ TIPOS_DOCUMENTO_LABELS[d.tipo] }}@if (d.nota) { · {{ d.nota }} }@if (d.version) { · {{ d.version }} }
+              </a>
+              <span class="d-flex align-items-center gap-2 flex-shrink-0">
+                <span class="text-muted">{{ d.fecha | date:'d MMM yy' }}</span>
+                <button type="button" class="btn btn-link btn-sm p-0 text-danger" (click)="quitarDocumento(d)" aria-label="Quitar documento">✕</button>
+              </span>
+            </div>
+          } @empty {
+            <div class="small text-muted ms-4">Ninguno</div>
+          }
+        </div>
+
+        @if (formDoc(); as f) {
+          <div class="card card-body mt-2">
+            <div class="row g-2">
+              <div class="col-12 col-sm-6">
+                <label class="form-label small fw-semibold" for="dTipo">Tipo</label>
+                <select id="dTipo" class="form-select form-select-sm" [ngModel]="f.tipo" (ngModelChange)="setDoc('tipo', $event)">
+                  @for (t of TIPOS_DOCUMENTO; track t) {
+                    <option [value]="t">{{ TIPOS_DOCUMENTO_LABELS[t] }}</option>
+                  }
+                </select>
+              </div>
+              <div class="col-12 col-sm-6">
+                <label class="form-label small fw-semibold" for="dVersion">Versión</label>
+                <input id="dVersion" type="text" class="form-control form-control-sm" placeholder="v1"
+                       [ngModel]="f.version" (ngModelChange)="setDoc('version', $event)">
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-semibold" for="dUrl">Enlace de Google Drive</label>
+                <input id="dUrl" type="url" class="form-control form-control-sm" placeholder="https://drive.google.com/…"
+                       [disabled]="!!archivo()" [ngModel]="f.url" (ngModelChange)="setDoc('url', $event)">
+                <div class="form-text">O sube un escaneo firmado:</div>
+                <input type="file" class="form-control form-control-sm" accept="application/pdf,image/*"
+                       aria-label="Subir archivo" (change)="onArchivo($event)">
+              </div>
+              <div class="col-12">
+                <label class="form-label small fw-semibold" for="dNota">Nota</label>
+                <input id="dNota" type="text" class="form-control form-control-sm"
+                       [ngModel]="f.nota" (ngModelChange)="setDoc('nota', $event)">
+              </div>
+            </div>
+            <div class="d-flex gap-2 mt-2">
+              <button type="button" class="btn btn-sm btn-primary" [disabled]="!formDocValido() || guardando()" (click)="guardarDocumento()">
+                @if (guardando()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                Guardar documento
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-secondary" (click)="formDoc.set(null)">Cancelar</button>
+            </div>
+          </div>
+        }
+      }
+
+      <!-- ═══════════════ HISTORIAL ═══════════════ -->
+      @case ('historial') {
+        <ol class="historial list-unstyled mb-0">
+          @for (h of historial(); track $index) {
+            <li class="historial__item" [class.historial__item--actual]="h.actual">
+              <div class="d-flex justify-content-between">
+                <span class="fw-semibold small">
+                  {{ h.carril === 'ejecucion' ? 'Obra · ' : '' }}{{ h.label }}
+                  @if (h.actual) { <span class="badge text-bg-light">actual</span> }
+                </span>
+                <span class="small text-muted">{{ h.dias }} d</span>
+              </div>
+              <div class="small text-muted">
+                {{ h.desde | date:'d MMM yyyy' }}@if (h.hasta) { → {{ h.hasta | date:'d MMM yyyy' }} }
+              </div>
+              @if (h.nota) { <div class="small">{{ h.nota }}</div> }
+            </li>
+          } @empty {
+            <li class="small text-muted">Sin movimientos.</li>
+          }
+        </ol>
+      }
+    }
+  </div>
+</aside>

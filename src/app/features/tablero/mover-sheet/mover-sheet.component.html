@@ -1,0 +1,123 @@
+<div class="hoja-backdrop" (click)="cerrar.emit()"></div>
+<div class="hoja-inferior" role="dialog" aria-modal="true" [attr.aria-label]="titulo()">
+  <div class="hoja-inferior__asa" aria-hidden="true"></div>
+
+  <div class="d-flex justify-content-between align-items-start mb-2">
+    <div class="min-w-0">
+      <div class="fw-semibold">{{ titulo() }}</div>
+      <div class="small text-muted text-truncate">
+        <span class="codigo-proyecto me-1">{{ proyecto().codigo }}</span>{{ proyecto().nombreProyecto }}
+      </div>
+    </div>
+    <button type="button" class="btn-close" (click)="cerrar.emit()" aria-label="Cerrar"></button>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger py-2 small">{{ error() }}</div>
+  }
+
+  @switch (paso()) {
+    @case ('elegir') {
+      @if (carril() === 'diseno') {
+        @for (fase of FASES; track fase.id) {
+          <div class="mb-2">
+            <div class="fase-titulo fase--{{ fase.color }}">{{ fase.label }}</div>
+            <div class="d-grid gap-1 mt-1">
+              @for (etapa of fase.etapas; track etapa) {
+                <button type="button" class="btn btn-light text-start etapa-opcion"
+                        [class.etapa-opcion--actual]="etapa === etapaActual()"
+                        [disabled]="etapa === etapaActual() || guardando()"
+                        (click)="elegir(etapa)">
+                  {{ ETAPAS_FLUJO_LABELS[etapa] }}
+                  @if (etapa === etapaActual()) { <span class="small text-muted">· actual</span> }
+                </button>
+              }
+            </div>
+          </div>
+        }
+        <div class="mb-1">
+          <div class="fase-titulo fase--fuera">Fuera del flujo</div>
+          <div class="d-grid mt-1">
+            <button type="button" class="btn btn-light text-start etapa-opcion"
+                    [disabled]="etapaActual() === 'no_se_dio' || guardando()"
+                    (click)="elegir('no_se_dio')">
+              {{ ETAPAS_FLUJO_LABELS['no_se_dio'] }}
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="d-grid gap-1">
+          @for (etapa of ETAPAS_EJECUCION; track etapa) {
+            <button type="button" class="btn btn-light text-start etapa-opcion"
+                    [class.etapa-opcion--actual]="etapa === etapaActual()"
+                    [disabled]="etapa === etapaActual() || guardando()"
+                    (click)="elegir(etapa)">
+              {{ ETAPAS_EJECUCION_LABELS[etapa] }}
+              @if (etapa === etapaActual()) { <span class="small text-muted">· actual</span> }
+            </button>
+          }
+        </div>
+      }
+    }
+
+    @case ('avisos') {
+      <div class="alert alert-warning py-2">
+        @for (a of avisos(); track a) {
+          <div>⚠️ {{ a }}</div>
+        }
+      </div>
+      <div class="d-grid gap-2">
+        <button type="button" class="btn btn-warning" [disabled]="guardando()" (click)="mover()">
+          Mover de todas formas
+        </button>
+        <button type="button" class="btn btn-outline-secondary" (click)="volver()">Volver</button>
+      </div>
+    }
+
+    @case ('motivo') {
+      <label class="form-label small fw-semibold required-label" for="motivoCierre">¿Por qué no se dio?</label>
+      <select id="motivoCierre" class="form-select mb-2"
+              [ngModel]="motivo()" (ngModelChange)="motivo.set($event)">
+        <option value="" disabled>Elige un motivo</option>
+        @for (m of MOTIVOS; track m) {
+          <option [value]="m">{{ MOTIVOS_LABELS[m] }}</option>
+        }
+      </select>
+      @if (motivo() === 'otro') {
+        <input type="text" class="form-control mb-2" placeholder="Cuéntalo en pocas palabras"
+               [ngModel]="motivoDetalle()" (ngModelChange)="motivoDetalle.set($event)">
+      }
+      <div class="d-grid gap-2">
+        <button type="button" class="btn btn-secondary" [disabled]="!motivoValido() || guardando()" (click)="mover()">
+          Mover a «No se dio»
+        </button>
+        <button type="button" class="btn btn-outline-secondary" (click)="volver()">Volver</button>
+      </div>
+    }
+
+    @case ('portafolio') {
+      <p class="mb-2">Movido a <strong>Portafolio</strong>. ¿Quieres crear su ficha en Portafolio?</p>
+      <div class="d-grid gap-2">
+        <button type="button" class="btn btn-primary" [disabled]="guardando()" (click)="crearFichaPortafolio()">
+          Crear ficha en Portafolio
+        </button>
+        @if (portafolios().length) {
+          <div class="input-group">
+            <select class="form-select" aria-label="Ficha de Portafolio existente"
+                    [ngModel]="portafolioExistenteId()" (ngModelChange)="portafolioExistenteId.set($event)">
+              <option value="">…o enlazar una existente</option>
+              @for (pf of portafolios(); track pf.id) {
+                <option [value]="pf.id">{{ pf.nombre }}</option>
+              }
+            </select>
+            <button type="button" class="btn btn-outline-primary"
+                    [disabled]="!portafolioExistenteId() || guardando()" (click)="enlazarPortafolio()">
+              Enlazar
+            </button>
+          </div>
+        }
+        <button type="button" class="btn btn-outline-secondary" (click)="cerrar.emit()">Ahora no</button>
+      </div>
+    }
+  }
+</div>

@@ -39,6 +39,16 @@
   &--success  { border-left: 4px solid t.$color-success; .stat-card__value { color: t.$color-success-dark; } }
   &--warning  { border-left: 4px solid t.$color-warning; .stat-card__value { color: t.$color-reminder-warning-text; } }
   &--info     { border-left: 4px solid t.$color-info;    .stat-card__value { color: t.$color-info-dark; } }
+  &--danger   { border-left: 4px solid t.$color-danger;  .stat-card__value { color: t.$color-danger; } }
+
+  &--clickable {
+    cursor: pointer;
+    font: inherit;
+    transition: t.$transition-card;
+    &:hover { box-shadow: t.$shadow-card-sm; }
+    &:focus-visible { outline: 2px solid t.$color-primary; outline-offset: 2px; }
+  }
+  &--active { background: t.$color-light; box-shadow: inset 0 0 0 2px t.$color-border; }
 }
 
 // ── Cliente card (Kanban) ─────────────────────────────────────

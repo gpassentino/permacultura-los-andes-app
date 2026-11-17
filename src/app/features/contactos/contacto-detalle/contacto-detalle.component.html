@@ -106,12 +106,34 @@
         </div>
       }
 
-      <!-- Kanban link(s) — one per linked Cliente -->
-      @if (linkedClientes().length > 0) {
+      <!-- Proyectos del tablero -->
+      @if (linkedProyectos().length > 0) {
         <div class="info-section mb-3">
-          <div class="info-label">Tablero de Clientes</div>
+          <div class="info-label">Proyectos</div>
+          <div class="list-group mt-1">
+            @for (p of linkedProyectos(); track p.id) {
+              <a [routerLink]="['/tablero']" [queryParams]="{ proyectoId: p.id }"
+                 class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-2">
+                <span class="min-w-0">
+                  <span class="codigo-proyecto me-1">{{ p.codigo }}</span>
+                  <span class="fw-semibold">{{ p.nombreProyecto }}</span>
+                </span>
+                <span class="small text-muted text-nowrap">
+                  {{ ETAPAS_FLUJO_LABELS[p.etapaFlujo] }}
+                  @if (p.etapaEjecucion) { · Obra: {{ ETAPAS_EJECUCION_LABELS[p.etapaEjecucion] }} }
+                </span>
+              </a>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Registros anteriores del tablero sin proyecto (antes de la migración) -->
+      @if (clientesSinProyecto().length > 0) {
+        <div class="info-section mb-3">
+          <div class="info-label">Tablero de Clientes (anterior)</div>
           <div class="mt-1 d-flex flex-wrap gap-2">
-            @for (c of linkedClientes(); track c.id) {
+            @for (c of clientesSinProyecto(); track c.id) {
               <a [routerLink]="['/tablero']"
                  [queryParams]="{ clienteId: c.id }"
                  class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1">

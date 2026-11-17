@@ -1,0 +1,64 @@
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <span class="small text-muted">{{ filas().length }} proyecto(s)</span>
+  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="exportar()">⬇ Exportar CSV</button>
+</div>
+
+<div class="table-responsive proyectos-tabla">
+  <table class="table table-sm table-hover align-middle mb-0">
+    <thead>
+      <tr>
+        <th scope="col" [attr.aria-sort]="ariaSort('codigo')">
+          <button type="button" class="btn btn-link btn-sm p-0 th-orden" (click)="ordenar('codigo')">Código</button>
+        </th>
+        <th scope="col" [attr.aria-sort]="ariaSort('proyecto')">
+          <button type="button" class="btn btn-link btn-sm p-0 th-orden" (click)="ordenar('proyecto')">Proyecto</button>
+        </th>
+        <th scope="col" [attr.aria-sort]="ariaSort('etapa')">
+          <button type="button" class="btn btn-link btn-sm p-0 th-orden" (click)="ordenar('etapa')">Etapa</button>
+        </th>
+        <th scope="col" class="d-none d-lg-table-cell">Servicios</th>
+        <th scope="col" class="text-end" [attr.aria-sort]="ariaSort('dias')">
+          <button type="button" class="btn btn-link btn-sm p-0 th-orden" (click)="ordenar('dias')">Días</button>
+        </th>
+        <th scope="col" [attr.aria-sort]="ariaSort('proximoPaso')">
+          <button type="button" class="btn btn-link btn-sm p-0 th-orden" (click)="ordenar('proximoPaso')">Próximo paso</button>
+        </th>
+        @if (cobros()) {
+          <th scope="col" class="text-end" [attr.aria-sort]="ariaSort('valor')">
+            <button type="button" class="btn btn-link btn-sm p-0 th-orden" (click)="ordenar('valor')">Valor</button>
+          </th>
+          <th scope="col" class="text-end" [attr.aria-sort]="ariaSort('pagado')">
+            <button type="button" class="btn btn-link btn-sm p-0 th-orden" (click)="ordenar('pagado')">Pagado</button>
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (f of filas(); track f.id) {
+        <tr class="fila-clic" (click)="abrir.emit(f.id)" (keydown.enter)="abrir.emit(f.id)" tabindex="0">
+          <td><span class="codigo-proyecto">{{ f.codigo }}</span></td>
+          <td>
+            <div class="fw-semibold">{{ f.proyecto }}</div>
+            <div class="small text-muted">{{ f.contacto }}</div>
+          </td>
+          <td class="small text-nowrap">
+            {{ ETAPAS_FLUJO_LABELS[f.etapa] }}
+            @if (f.etapaEjecucion) { <div class="text-muted">Obra: {{ ETAPAS_EJECUCION_LABELS[f.etapaEjecucion] }}</div> }
+          </td>
+          <td class="small d-none d-lg-table-cell">{{ f.servicios || '—' }}</td>
+          <td class="text-end small" [class.text-danger]="estancado(f.id)" [class.fw-semibold]="estancado(f.id)">{{ f.dias }}</td>
+          <td class="small" [class.text-danger]="pasoVencido(f.id)">
+            {{ f.proximoPaso || '—' }}
+            @if (f.proximoPasoFecha) { <div class="text-muted" [class.text-danger]="pasoVencido(f.id)">{{ f.proximoPasoFecha | date:'d MMM' }}</div> }
+          </td>
+          @if (cobros()) {
+            <td class="text-end small text-nowrap">{{ f.valor !== null ? formatoCOP(f.valor) : '—' }}</td>
+            <td class="text-end small text-nowrap">{{ f.pagado !== null ? formatoCOP(f.pagado) : '—' }}</td>
+          }
+        </tr>
+      } @empty {
+        <tr><td colspan="8" class="text-center text-muted py-4">Sin proyectos con estos filtros.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>

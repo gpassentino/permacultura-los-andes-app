@@ -1,8 +1,9 @@
 import { Injectable, inject, Injector, runInInjectionContext } from '@angular/core';
 import {
   Firestore, collection, collectionData, docData, doc,
-  query, where, runTransaction, serverTimestamp, Timestamp,
+  query, where, runTransaction, serverTimestamp, Timestamp, deleteField,
 } from '@angular/fire/firestore';
+import { Storage, ref as storageRef, uploadBytes, getDownloadURL } from '@angular/fire/storage';
 import { Auth } from '@angular/fire/auth';
 import { Observable, map } from 'rxjs';
 import {
@@ -36,6 +37,7 @@ type CamposProtegidos = 'id' | 'codigo' | 'etapaFlujo' | 'etapaFlujoDesde' |
 export class ProyectoFlujoService {
   private firestore = inject(Firestore);
   private auth      = inject(Auth);
+  private storage   = inject(Storage);
   private injector  = inject(Injector);
 
   private col = collection(this.firestore, COL);
@@ -95,9 +97,29 @@ export class ProyectoFlujoService {
     );
   }
 
-  /** Edición de campos libres (ficha). Etapas y código tienen sus propios métodos. */
+  /**
+   * Edición de campos libres (ficha). Etapas y código tienen sus propios métodos.
+   * Una clave presente con valor `undefined` borra el campo (p. ej. quitar el próximo paso).
+   */
   async actualizarProyecto(id: string, cambios: Partial<Omit<ProyectoFlujo, CamposProtegidos>>): Promise<void> {
-    await this.escribir(id, async () => cambios);
+    const borrar = Object.entries(cambios).filter(([, v]) => v === undefined).map(([k]) => k);
+    await runInInjectionContext(this.injector, () =>
+      runTransaction(this.firestore, async tx => {
+        const ref = doc(this.firestore, COL, id);
+        if (!(await tx.get(ref)).exists()) throw new Error('Proyecto no encontrado');
+        const patch: Record<string, unknown> = { ...this.toFirestore(cambios), actualizadoEn: serverTimestamp() };
+        for (const k of borrar) patch[k] = deleteField();
+        tx.update(ref, patch);
+      }),
+    );
+  }
+
+  /** Sube un archivo (p. ej. un escaneo firmado) y devuelve su URL de descarga. */
+  async subirArchivo(proyectoId: string, file: File): Promise<string> {
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const fileRef = storageRef(this.storage, `proyectosFlujo/${proyectoId}/documentos/${Date.now()}-${safeName}`);
+    await uploadBytes(fileRef, file);
+    return getDownloadURL(fileRef);
   }
 
   /** Cambia el código liberando el anterior, en una transacción. */

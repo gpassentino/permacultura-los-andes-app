@@ -201,3 +201,318 @@
     max-height: calc(100vh - 1rem);
   }
 }
+
+// ══════════════════════════════════════════════════════════════
+// Flujo de proyectos (tablero nuevo)
+// Fases: ámbar · morado · verde · gris. Verde de marca #8AD10D solo como acento.
+// ══════════════════════════════════════════════════════════════
+$fase-ambar-bg:  #fdf1d8;  $fase-ambar-fg:  #7a4f00;
+$fase-morado-bg: #efe6f8;  $fase-morado-fg: #4f2a7a;
+$fase-verde-bg:  #e5f2e0;  $fase-verde-fg:  #24563f;
+$fase-gris-bg:   #eceae6;  $fase-gris-fg:   #55524c;
+$fase-ejec-bg:   #e1efed;  $fase-ejec-fg:   #1d5a52;
+$acento-marca:   #8ad10d;
+
+.fase--ambar     { background: $fase-ambar-bg;  color: $fase-ambar-fg; }
+.fase--morado    { background: $fase-morado-bg; color: $fase-morado-fg; }
+.fase--verde     { background: $fase-verde-bg;  color: $fase-verde-fg; }
+.fase--gris      { background: $fase-gris-bg;   color: $fase-gris-fg; }
+.fase--fuera     { background: transparent; color: $fase-gris-fg; border: 1px dashed t.$color-border; }
+.fase--ejecucion { background: $fase-ejec-bg;   color: $fase-ejec-fg; }
+
+.min-w-0 { min-width: 0; }
+
+// ── Indicadores: fila deslizable en celular ───────────────────
+.indicadores {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+  .stat-card { min-width: 120px; }
+}
+
+// ── Tarjeta de proyecto ───────────────────────────────────────
+.proyecto-card {
+  background: t.$color-white;
+  border: 1px solid t.$color-border-light;
+  border-left: 1px solid t.$color-border-light;
+
+  &--estancado { border-color: t.$color-danger; box-shadow: inset 3px 0 0 t.$color-danger; }
+  &--ejecucion { box-shadow: inset 3px 0 0 $fase-ejec-fg; }
+  &--estancado.proyecto-card--ejecucion { box-shadow: inset 3px 0 0 t.$color-danger; }
+}
+
+.codigo-proyecto {
+  font-family: SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  font-size: t.$font-size-sm;
+  letter-spacing: 0.02em;
+  color: t.$color-text-warm;
+
+  &--grande { font-size: t.$font-size-lg; color: t.$color-body; }
+}
+
+.servicio-tag {
+  display: inline-block;
+  padding: 0.05rem 0.45rem;
+  border-radius: t.$radius-pill;
+  font-size: t.$font-size-xs;
+  font-weight: 600;
+  background: t.$color-light;
+  color: t.$color-text-chip;
+  border: 1px solid t.$color-border-light;
+}
+
+.carril-link { color: $fase-ejec-fg; white-space: nowrap; }
+
+// ── Celular: grupos plegables ─────────────────────────────────
+.grupo-fase__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  border: none;
+  border-radius: t.$radius-sm;
+  padding: 0.55rem 0.75rem;
+  font-weight: 700;
+  font-size: t.$font-size-md;
+  margin-bottom: t.$space-sm;
+}
+
+.grupo-etapa__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid t.$color-border-light;
+  padding: 0.35rem 0.25rem;
+  margin-bottom: t.$space-sm;
+  font-size: t.$font-size-base;
+  font-weight: 600;
+  color: t.$color-text-warm;
+
+  &--cerrado { color: t.$color-text-muted; font-weight: 500; }
+}
+
+// ── Escritorio: Kanban por fases ──────────────────────────────
+.kanban-fases {
+  display: flex;
+  gap: t.$space-md;
+  overflow-x: auto;
+  padding-bottom: t.$space-sm;
+  align-items: flex-start;
+}
+
+.kanban-fase { flex-shrink: 0; }
+
+.kanban-fase__header {
+  border-radius: t.$radius-sm;
+  padding: 0.4rem 0.7rem;
+  font-weight: 700;
+  font-size: t.$font-size-base;
+  margin-bottom: t.$space-sm;
+}
+
+.kanban-col {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+
+  &--cerrada { width: 150px; }
+}
+
+.kanban-col__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: t.$font-size-base;
+  font-weight: 600;
+  padding: 0 0.15rem t.$space-xs;
+  border-bottom: 2px solid t.$color-border-light;
+  margin-bottom: t.$space-sm;
+}
+
+.kanban-col__body {
+  min-height: 90px;
+  max-height: 65vh;
+  overflow-y: auto;
+  border-radius: t.$radius-sm;
+
+  &.cdk-drop-list-receiving {
+    outline: 2px dashed t.$color-primary;
+    outline-offset: 2px;
+    background: rgba(45, 106, 79, 0.05);
+  }
+}
+
+// ── Hoja inferior "Mover a…" ──────────────────────────────────
+.hoja-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: t.$z-modal + 10;
+}
+
+.hoja-inferior {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: t.$color-white;
+  border-radius: t.$radius-lg t.$radius-lg 0 0;
+  padding: t.$space-sm t.$space-lg calc(t.$space-lg + env(safe-area-inset-bottom));
+  z-index: t.$z-modal + 11;
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.18);
+
+  &__asa {
+    width: 40px;
+    height: 4px;
+    border-radius: 2px;
+    background: t.$color-border;
+    margin: 0 auto t.$space-sm;
+  }
+
+  @media (min-width: 768px) {
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 440px;
+    border-radius: t.$radius-lg;
+    .hoja-inferior__asa { display: none; }
+  }
+}
+
+.fase-titulo {
+  display: inline-block;
+  font-size: t.$font-size-sm;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: t.$letter-spacing-label;
+  border-radius: t.$radius-pill;
+  padding: 0.1rem 0.6rem;
+}
+
+.etapa-opcion {
+  min-height: 44px; // objetivo táctil
+  border: 1px solid t.$color-border-light;
+
+  &--actual { background: t.$color-light; }
+}
+
+// ── Ficha: pantalla completa en celular, panel lateral en escritorio ──
+.ficha-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: t.$z-modal;
+}
+
+.ficha-panel {
+  position: fixed;
+  inset: 0;
+  z-index: t.$z-modal + 1;
+  background: t.$color-bg;
+  display: flex;
+  flex-direction: column;
+
+  @media (min-width: 768px) {
+    left: auto;
+    width: 520px;
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.15);
+  }
+
+  &__header {
+    background: t.$color-white;
+    border-bottom: 1px solid t.$color-border-light;
+    padding: t.$space-md t.$space-lg 0;
+    padding-top: calc(t.$space-md + env(safe-area-inset-top));
+  }
+
+  &__body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: t.$space-lg;
+    padding-bottom: calc(t.$space-xl * 3 + env(safe-area-inset-bottom));
+  }
+}
+
+.ficha-tabs .nav-link {
+  color: t.$color-text-warm;
+  font-size: t.$font-size-md;
+  &.active { color: t.$color-body; border-bottom-color: $acento-marca; }
+}
+
+.ficha-seccion {
+  background: t.$color-white;
+  border: 1px solid t.$color-border-light;
+  border-radius: t.$radius-sm;
+  padding: t.$space-md;
+  margin-bottom: t.$space-md;
+
+  &__titulo {
+    font-size: t.$font-size-sm;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: t.$letter-spacing-label;
+    color: t.$color-text-label;
+    margin-bottom: t.$space-sm;
+    cursor: default;
+  }
+}
+
+summary.ficha-seccion__titulo { cursor: pointer; }
+
+// Botón de guardar pegado abajo mientras hay cambios
+.ficha-guardar {
+  position: sticky;
+  bottom: 0;
+  background: t.$color-white;
+  padding-top: t.$space-sm;
+}
+
+.doc-casilla {
+  background: t.$color-white;
+  border: 1px solid t.$color-border-light;
+  border-radius: t.$radius-sm;
+  padding: t.$space-sm t.$space-md;
+  margin-bottom: t.$space-sm;
+
+  &--vacia { border-style: dashed; }
+}
+
+.historial__item {
+  position: relative;
+  padding: 0 0 t.$space-md t.$space-lg;
+  border-left: 2px solid t.$color-border-light;
+  margin-left: t.$space-xs;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: t.$color-border;
+  }
+
+  &--actual::before { background: $acento-marca; }
+}
+
+// ── Lista ─────────────────────────────────────────────────────
+.proyectos-tabla {
+  background: t.$color-white;
+  border: 1px solid t.$color-border-light;
+  border-radius: t.$radius-sm;
+
+  .th-orden { color: t.$color-body; font-weight: 600; text-decoration: none; }
+  .fila-clic { cursor: pointer; }
+}

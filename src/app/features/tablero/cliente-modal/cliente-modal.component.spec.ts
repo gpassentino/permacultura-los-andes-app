@@ -10,6 +10,7 @@ registerLocaleData(localeEsCO);
 function makeCliente(overrides: Partial<Cliente> = {}): Cliente {
   return {
     id: 'c1',
+    contactoId: 'con1',
     nombre: 'Existing Client',
     categoria: 'Visita Técnica',
     checklist: [],
@@ -78,7 +79,7 @@ describe('ClienteModalComponent', () => {
 
     it('should emit guardar with data when form is valid', () => {
       const component = fixture.debugElement.children[0].componentInstance as ClienteModalComponent;
-      component.form.patchValue({ nombre: 'New Client' });
+      (component.form as any).patchValue({ nombre: 'New Client' });
       component.onSubmit();
       expect(host.guardado).toBeTruthy();
       expect(host.guardado.data.nombre).toBe('New Client');

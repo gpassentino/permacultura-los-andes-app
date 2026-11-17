@@ -8,6 +8,7 @@ import { Cliente } from '../../shared/models/cliente.model';
 function makeCliente(overrides: Partial<Cliente> = {}): Cliente {
   return {
     id: '1',
+    contactoId: 'c1',
     nombre: 'Test',
     categoria: 'Indefinido', checklist: [],
     municipio: '',

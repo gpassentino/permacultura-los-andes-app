@@ -5,6 +5,7 @@ import { Cliente } from '../shared/models/cliente.model';
 function makeCliente(recordatorioFecha: Date | null): Cliente {
   return {
     id: '1',
+    contactoId: 'c1',
     nombre: 'Test',
     categoria: 'Indefinido', checklist: [],
     municipio: '',

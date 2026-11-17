@@ -1,4 +1,4 @@
-<!-- ── Error alert ── -->
+<!-- ── Error ── -->
 @if (error()) {
   <div class="alert alert-danger alert-dismissible mx-3 mt-2 mb-0 py-2" role="alert">
     {{ error() }}
@@ -6,196 +6,309 @@
   </div>
 }
 
-<!-- ── Loading ── -->
 @if (loading()) {
   <div class="d-flex justify-content-center align-items-center py-5">
     <div class="text-center">
-      <span class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Cargando…</span>
-      </span>
-      <p class="mt-2 text-muted small">Cargando clientes…</p>
+      <span class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando…</span></span>
+      <p class="mt-2 text-muted small">Cargando proyectos…</p>
     </div>
   </div>
 } @else {
 
-<!-- ── Recordatorios banner ── -->
-@if (recordatoriosBanner().length > 0) {
-  <div class="recordatorio-banner px-3 py-2 d-flex align-items-center flex-wrap gap-2">
-    <span class="fw-semibold text-dark me-1">🔔 Recordatorios:</span>
-    @for (r of recordatoriosBanner(); track r.id) {
-      <button type="button"
-              class="recordatorio-chip"
-              [class.chip-danger]="recordatorioService.getEstado(r) === 'vencido'"
-              [class.chip-warning]="recordatorioService.getEstado(r) !== 'vencido'"
-              (click)="openModal(r)"
-              [title]="r.recordatorioMensaje || r.nombre">
-        <span class="chip-label">{{ recordatorioService.bannerLabel(r) }}</span>
-        {{ r.nombre }}
-        @if (r.recordatorioMensaje) {
-          <span class="chip-msg">— {{ r.recordatorioMensaje }}</span>
+<div class="tablero-cabecera px-3 pt-3">
+  <!-- ── Indicadores (fila deslizable en celular) ── -->
+  <div class="indicadores d-flex gap-2 pb-2">
+    <app-stat-card label="Propuestas abiertas" [value]="stats().propuestasAbiertas" color="warning" />
+    <app-stat-card label="En diseño" [value]="stats().enDiseno" color="success" />
+    <app-stat-card label="Estancados" [value]="stats().estancados" color="danger"
+                   [clickable]="true" [active]="soloEstancados()" (pulsar)="toggleEstancados()" />
+  </div>
+
+  <!-- ── Búsqueda y filtros ── -->
+  <div class="row g-2 align-items-center mt-1">
+    <div class="col-12 col-md-4">
+      <input type="search" class="form-control" placeholder="Buscar por proyecto, código o contacto"
+             aria-label="Buscar proyectos" [ngModel]="texto()" (ngModelChange)="texto.set($event)">
+    </div>
+    <div class="col-7 col-md-3">
+      <select class="form-select" aria-label="Filtrar por servicio"
+              [ngModel]="servicioId()" (ngModelChange)="servicioId.set($event || null)">
+        <option [ngValue]="null">Todos los servicios</option>
+        @for (s of catalogo(); track s.id) {
+          <option [ngValue]="s.id">{{ s.nombre }}</option>
         }
+      </select>
+    </div>
+    <div class="col-5 col-md-2">
+      <div class="form-check form-switch mb-0">
+        <input class="form-check-input" type="checkbox" role="switch" id="mostrarArchivados"
+               [ngModel]="mostrarArchivados()" (ngModelChange)="mostrarArchivados.set($event)">
+        <label class="form-check-label small" for="mostrarArchivados">Archivados</label>
+      </div>
+    </div>
+    <div class="col-12 col-md-3 d-flex gap-2 justify-content-md-end">
+      <div class="btn-group btn-group-sm" role="group" aria-label="Vista">
+        <button type="button" class="btn btn-outline-secondary" [class.active]="vista() === 'tablero'"
+                [attr.aria-pressed]="vista() === 'tablero'" (click)="vista.set('tablero')">Tablero</button>
+        <button type="button" class="btn btn-outline-secondary" [class.active]="vista() === 'lista'"
+                [attr.aria-pressed]="vista() === 'lista'" (click)="vista.set('lista')">Lista</button>
+      </div>
+      <button type="button" class="btn btn-sm btn-primary d-none d-md-inline-block" (click)="mostrarNuevo.set(true)">
+        + Nuevo proyecto
       </button>
+    </div>
+  </div>
+
+  @if (soloEstancados()) {
+    <div class="small mt-2">
+      Mostrando solo estancados ·
+      <button type="button" class="btn btn-link btn-sm p-0 align-baseline" (click)="soloEstancados.set(false)">Quitar filtro</button>
+    </div>
+  }
+
+  <!-- ── Próximos pasos vencidos o para hoy ── -->
+  @if (pasosUrgentes().length) {
+    <div class="recordatorio-banner d-flex align-items-center flex-wrap gap-2 rounded mt-2 px-2 py-2">
+      <span class="fw-semibold small">🔔 Próximos pasos:</span>
+      @for (p of pasosUrgentes(); track p.id) {
+        <button type="button" class="recordatorio-chip"
+                [class.chip-danger]="pasoVencido(p)" [class.chip-warning]="!pasoVencido(p)"
+                (click)="abrirFicha(p.id)" [title]="p.proximoPaso!.texto">
+          <span class="chip-label">{{ pasoVencido(p) ? 'Vencido' : 'Hoy' }}</span>
+          {{ p.nombreProyecto }} <span class="chip-msg">— {{ p.proximoPaso!.texto }}</span>
+        </button>
+      }
+    </div>
+  }
+</div>
+
+@if (vista() === 'lista') {
+  <div class="px-3 py-3">
+    <app-proyectos-lista [proyectos]="paraLista()" (abrir)="abrirFicha($event)" />
+  </div>
+} @else {
+
+<!-- ══════════════════════════════════════════════════
+     CELULAR: lista agrupada por fase y etapa
+════════════════════════════════════════════════════ -->
+<div class="d-md-none px-3 pb-5 pt-2">
+  @for (fase of FASES; track fase.id) {
+    <section class="grupo-fase mb-3">
+      <button type="button" class="grupo-fase__header fase--{{ fase.color }}"
+              [attr.aria-expanded]="!plegados().has(fase.id)" (click)="togglePlegado(fase.id)">
+        <span>{{ fase.label }}</span>
+        <span class="d-flex align-items-center gap-2">
+          <span class="badge rounded-pill text-bg-light">{{ conteoFase(fase.etapas) }}</span>
+          <span aria-hidden="true">{{ plegados().has(fase.id) ? '▸' : '▾' }}</span>
+        </span>
+      </button>
+
+      @if (!plegados().has(fase.id)) {
+        @for (etapa of fase.etapas; track etapa) {
+          @let lista = porEtapa().get(etapa) ?? [];
+          @if (ETAPAS_CERRADAS.includes(etapa) && !mostrarArchivados()) {
+            <div class="grupo-etapa__header grupo-etapa__header--cerrado">
+              <span>{{ ETAPAS_FLUJO_LABELS[etapa] }}</span>
+              <span class="badge rounded-pill text-bg-light">{{ lista.length }}</span>
+            </div>
+          } @else {
+            <button type="button" class="grupo-etapa__header" [attr.aria-expanded]="!plegados().has(etapa)"
+                    (click)="togglePlegado(etapa)">
+              <span>{{ ETAPAS_FLUJO_LABELS[etapa] }}</span>
+              <span class="badge rounded-pill text-bg-light">{{ lista.length }}</span>
+            </button>
+            @if (!plegados().has(etapa)) {
+              @for (p of lista; track p.id) {
+                <app-cliente-card [proyecto]="p" carril="diseno"
+                                  (click)="abrirFicha(p.id)" (mover)="abrirMover(p.id, 'diseno')" />
+              } @empty {
+                <p class="small text-muted ms-2 mb-2">Sin proyectos</p>
+              }
+            }
+          }
+        }
+      }
+    </section>
+  }
+
+  <!-- Fuera del flujo -->
+  @let perdidos = porEtapa().get('no_se_dio') ?? [];
+  @if (perdidos.length) {
+    <section class="grupo-fase mb-3">
+      @if (mostrarArchivados()) {
+        <button type="button" class="grupo-fase__header fase--fuera" [attr.aria-expanded]="!plegados().has('no_se_dio')"
+                (click)="togglePlegado('no_se_dio')">
+          <span>No se dio</span>
+          <span class="badge rounded-pill text-bg-light">{{ perdidos.length }}</span>
+        </button>
+        @if (!plegados().has('no_se_dio')) {
+          @for (p of perdidos; track p.id) {
+            <app-cliente-card [proyecto]="p" carril="diseno"
+                              (click)="abrirFicha(p.id)" (mover)="abrirMover(p.id, 'diseno')" />
+          }
+        }
+      } @else {
+        <div class="grupo-fase__header fase--fuera">
+          <span>No se dio</span>
+          <span class="badge rounded-pill text-bg-light">{{ perdidos.length }}</span>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Carril de ejecución -->
+  @if (hayEjecucion()) {
+    <section class="grupo-fase mb-3">
+      <button type="button" class="grupo-fase__header fase--ejecucion" [attr.aria-expanded]="ejecucionAbierta()"
+              (click)="ejecucionAbierta.set(!ejecucionAbierta())">
+        <span>Carril de ejecución</span>
+        <span aria-hidden="true">{{ ejecucionAbierta() ? '▾' : '▸' }}</span>
+      </button>
+      @if (ejecucionAbierta()) {
+        @for (etapa of ETAPAS_EJECUCION; track etapa) {
+          @let lista = porEjecucion().get(etapa) ?? [];
+          @if (lista.length) {
+            <div class="grupo-etapa__header grupo-etapa__header--cerrado">
+              <span>{{ ETAPAS_EJECUCION_LABELS[etapa] }}</span>
+              <span class="badge rounded-pill text-bg-light">{{ lista.length }}</span>
+            </div>
+            @for (p of lista; track p.id) {
+              <app-cliente-card [proyecto]="p" carril="ejecucion"
+                                (click)="abrirFicha(p.id)" (mover)="abrirMover(p.id, 'ejecucion')" />
+            }
+          }
+        }
+      }
+    </section>
+  }
+</div>
+
+<!-- ══════════════════════════════════════════════════
+     ESCRITORIO: Kanban por fases, arrastrar y soltar
+════════════════════════════════════════════════════ -->
+<div class="d-none d-md-block px-3 pb-4 pt-2" cdkDropListGroup>
+  <div class="kanban-fases">
+    @for (fase of FASES; track fase.id) {
+      <div class="kanban-fase">
+        <div class="kanban-fase__header fase--{{ fase.color }}">
+          {{ fase.label }} <span class="badge rounded-pill text-bg-light ms-1">{{ conteoFase(fase.etapas) }}</span>
+        </div>
+        <div class="d-flex gap-2">
+          @for (etapa of fase.etapas; track etapa) {
+            @let lista = porEtapa().get(etapa) ?? [];
+            @let cerrada = ETAPAS_CERRADAS.includes(etapa) && !mostrarArchivados();
+            <div class="kanban-col" [class.kanban-col--cerrada]="cerrada">
+              <div class="kanban-col__header">
+                <span>{{ ETAPAS_FLUJO_LABELS[etapa] }}</span>
+                <span class="badge rounded-pill text-bg-secondary">{{ lista.length }}</span>
+              </div>
+              <div class="kanban-col__body" cdkDropList
+                   [cdkDropListData]="{ carril: 'diseno', etapa: etapa }"
+                   (cdkDropListDropped)="onDrop($event)">
+                @if (cerrada) {
+                  <div class="drop-hint small text-muted">{{ lista.length }} archivado(s)</div>
+                } @else {
+                  @for (p of lista; track p.id) {
+                    <div cdkDrag [cdkDragData]="p" (click)="abrirFicha(p.id)">
+                      <app-cliente-card [proyecto]="p" carril="diseno" (mover)="abrirMover(p.id, 'diseno')" />
+                      <div *cdkDragPlaceholder class="drag-placeholder mb-2"></div>
+                    </div>
+                  } @empty {
+                    <div class="drop-hint small text-muted">Arrastra aquí</div>
+                  }
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Fuera del flujo -->
+    <div class="kanban-fase">
+      <div class="kanban-fase__header fase--fuera">Fuera del flujo</div>
+      @let perdidosD = porEtapa().get('no_se_dio') ?? [];
+      <div class="kanban-col" [class.kanban-col--cerrada]="!mostrarArchivados()">
+        <div class="kanban-col__header">
+          <span>No se dio</span>
+          <span class="badge rounded-pill text-bg-secondary">{{ perdidosD.length }}</span>
+        </div>
+        <div class="kanban-col__body" cdkDropList
+             [cdkDropListData]="{ carril: 'diseno', etapa: 'no_se_dio' }"
+             (cdkDropListDropped)="onDrop($event)">
+          @if (mostrarArchivados()) {
+            @for (p of perdidosD; track p.id) {
+              <div cdkDrag [cdkDragData]="p" (click)="abrirFicha(p.id)">
+                <app-cliente-card [proyecto]="p" carril="diseno" (mover)="abrirMover(p.id, 'diseno')" />
+              </div>
+            }
+          } @else {
+            <div class="drop-hint small text-muted">Suelta aquí (pide motivo)</div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Carril de ejecución -->
+  <div class="carril-ejecucion mt-3">
+    <button type="button" class="kanban-fase__header fase--ejecucion w-100 text-start border-0"
+            [attr.aria-expanded]="ejecucionAbierta()" (click)="ejecucionAbierta.set(!ejecucionAbierta())">
+      {{ ejecucionAbierta() ? '▾' : '▸' }} Carril de ejecución
+    </button>
+    @if (ejecucionAbierta()) {
+      <div class="d-flex gap-2 mt-2 kanban-fases">
+        @for (etapa of ETAPAS_EJECUCION; track etapa) {
+          @let lista = porEjecucion().get(etapa) ?? [];
+          <div class="kanban-col">
+            <div class="kanban-col__header">
+              <span>{{ ETAPAS_EJECUCION_LABELS[etapa] }}</span>
+              <span class="badge rounded-pill text-bg-secondary">{{ lista.length }}</span>
+            </div>
+            <div class="kanban-col__body" cdkDropList
+                 [cdkDropListData]="{ carril: 'ejecucion', etapa: etapa }"
+                 (cdkDropListDropped)="onDrop($event)">
+              @for (p of lista; track p.id) {
+                <div cdkDrag [cdkDragData]="p" (click)="abrirFicha(p.id)">
+                  <app-cliente-card [proyecto]="p" carril="ejecucion" (mover)="abrirMover(p.id, 'ejecucion')" />
+                  <div *cdkDragPlaceholder class="drag-placeholder mb-2"></div>
+                </div>
+              } @empty {
+                <div class="drop-hint small text-muted">—</div>
+              }
+            </div>
+          </div>
+        }
+      </div>
     }
   </div>
+</div>
 }
 
-<!-- ══════════════════════════════════════════════════
-     MOBILE LAYOUT
-     Horizontal tab nav + single column with CDK touch drag
-════════════════════════════════════════════════════ -->
+<!-- FAB: nuevo proyecto (celular) -->
+<button class="fab d-md-none" type="button" (click)="mostrarNuevo.set(true)"
+        aria-label="Nuevo proyecto" title="Nuevo proyecto">+</button>
 
-<!-- Mobile: column tab nav -->
-<nav class="kanban-nav-tabs d-md-none" aria-label="Columnas del tablero">
-  @for (columna of columnas; track columna) {
-    <button type="button"
-            class="nav-pill-tab"
-            [class.active]="columnaActiva() === columna"
-            (click)="columnaActiva.set(columna)"
-            [attr.aria-current]="columnaActiva() === columna ? 'true' : null">
-      {{ columna }}
-      <span class="tab-count badge rounded-pill ms-1">
-        {{ (clientesPorColumna().get(columna) ?? []).length }}
-      </span>
-    </button>
-  }
-</nav>
+}<!-- fin @else loading -->
 
-<!-- Mobile: cards — CDK drop list enables long-press drag across columns -->
-<div class="d-md-none mobile-column-body p-3"
-     cdkDropList
-     [cdkDropListData]="columnaActiva()"
-     (cdkDropListDropped)="onDrop($event)">
-
-  @for (cliente of clientesPorColumna().get(columnaActiva()) ?? []; track cliente.id) {
-    <div cdkDrag
-         [cdkDragData]="cliente"
-         [cdkDragStartDelay]="touchDelay"
-         (click)="openModal(cliente)">
-      <app-cliente-card [cliente]="cliente" />
-      <div *cdkDragPlaceholder class="drag-placeholder mb-2"></div>
-    </div>
-  }
-
-  @if ((clientesPorColumna().get(columnaActiva()) ?? []).length === 0) {
-    <div class="empty-column text-center text-muted py-5">
-      <div class="empty-icon">🌱</div>
-      <p class="mb-0 small">Sin clientes en esta etapa</p>
-    </div>
-  }
-</div>
-
-<!-- ══════════════════════════════════════════════════
-     DESKTOP LAYOUT
-     Full Kanban board with all columns side by side
-════════════════════════════════════════════════════ -->
-
-<div class="kanban-board d-none d-md-flex" cdkDropListGroup>
-  @for (columna of columnas; track columna) {
-    <div class="kanban-column d-flex flex-column">
-
-      <!-- Column header -->
-      <div class="kanban-column-header d-flex justify-content-between align-items-center mb-2 px-1">
-        <span class="fw-semibold small text-dark">{{ columna }}</span>
-        <span class="badge bg-secondary rounded-pill">
-          {{ (clientesPorColumna().get(columna) ?? []).length }}
-        </span>
-      </div>
-
-      <!-- Drop zone -->
-      <div class="kanban-column-body flex-grow-1"
-           cdkDropList
-           [cdkDropListData]="columna"
-           (cdkDropListDropped)="onDrop($event)">
-
-        @for (cliente of clientesPorColumna().get(columna) ?? []; track cliente.id) {
-          <div cdkDrag [cdkDragData]="cliente" (click)="openModal(cliente)">
-            <app-cliente-card [cliente]="cliente" />
-            <div *cdkDragPlaceholder class="drag-placeholder mb-2"></div>
-          </div>
-        }
-
-        @if ((clientesPorColumna().get(columna) ?? []).length === 0) {
-          <div class="drop-hint text-center text-muted small py-4">
-            <div class="empty-icon-sm">🌱</div>
-            Arrastra aquí
-          </div>
-        }
-
-      </div>
-    </div>
-  }
-</div>
-
-<!-- ── FAB: new client ── -->
-<button class="fab" type="button"
-        (click)="openModal()"
-        aria-label="Nuevo cliente"
-        title="Nuevo cliente">
-  +
-</button>
-
-}<!-- end @else loading -->
-
-<!-- ── "Continuar con siguiente fase" prompt ── -->
-@if (continuarPrompt(); as p) {
-  <div class="modal show d-block modal-overlay"
-       tabindex="-1"
-       role="dialog"
-       aria-modal="true"
-       (click)="cancelarContinuar()">
-    <div class="modal-dialog modal-dialog-centered" (click)="$event.stopPropagation()">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">¿Continuar con la siguiente fase?</h5>
-          <button type="button" class="btn-close" (click)="cancelarContinuar()" aria-label="Cerrar"></button>
-        </div>
-        <div class="modal-body">
-          <p class="mb-2">
-            <strong>{{ p.cliente.nombre }}</strong> · {{ p.cliente.categoria }} marcado como <strong>Completo</strong>.
-          </p>
-          @if (p.siguiente) {
-            <p class="mb-3">
-              ¿Crear nueva tarjeta de <strong>{{ p.siguiente }}</strong> en <em>Antes</em> para este contacto?
-            </p>
-          } @else {
-            <p class="mb-3 text-muted small">
-              No hay siguiente fase predefinida para esta categoría. Puedes crear otra tarjeta manualmente si quieres.
-            </p>
-          }
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline-secondary" (click)="cancelarContinuar()">
-            No, dejar en Completo
-          </button>
-          @if (p.siguiente) {
-            <button type="button" class="btn btn-primary" (click)="confirmarContinuar(p.siguiente)">
-              Sí, crear {{ p.siguiente }}
-            </button>
-          }
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="modal-backdrop show modal-backdrop-custom"></div>
+<!-- ── Ficha ── -->
+@if (fichaProyecto(); as p) {
+  <app-proyecto-ficha [proyecto]="p" [contacto]="fichaContacto()" [clienteLegacy]="fichaCliente()"
+                      [catalogo]="catalogo()"
+                      (cerrar)="cerrarFicha()" (mover)="abrirMover(p.id, $event)" />
 }
 
-<!-- ── Modal overlay ── -->
-@if (showModal()) {
-  <div class="modal show d-block modal-overlay"
-       tabindex="-1"
-       role="dialog"
-       aria-modal="true"
-       (click)="onBackdropClick($event)">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-      <div class="modal-content">
-        <app-cliente-modal
-          [cliente]="selectedCliente()"
-          (cerrar)="closeModal()"
-          (guardar)="onGuardar($event)"
-          (eliminar)="onEliminar($event)"
-        />
-      </div>
-    </div>
-  </div>
-  <div class="modal-backdrop show modal-backdrop-custom"></div>
+<!-- ── Mover a… ── -->
+@if (mover(); as m) {
+  @if (moverProyecto(); as p) {
+    <app-mover-sheet [proyecto]="p" [carril]="m.carril" [destinoInicial]="m.destino"
+                     [contexto]="contextoMovimiento(p)" [servicioIdsEjecucion]="servicioIdsEjecucion()"
+                     (cerrar)="mover.set(null)" />
+  }
+}
+
+<!-- ── Nuevo proyecto ── -->
+@if (mostrarNuevo()) {
+  <app-proyecto-form [servicios]="catalogo()" [codigosUsados]="codigosUsados()"
+                     (cerrar)="mostrarNuevo.set(false)" (creado)="onCreado($event)" />
 }

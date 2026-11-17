@@ -8,6 +8,8 @@ import { switchMap, of } from 'rxjs';
 
 import { ContactoService, ContactoLinkedError } from '../../../services/contacto.service';
 import { ClienteService } from '../../../services/cliente.service';
+import { ProyectoFlujoService } from '../../../services/proyecto-flujo.service';
+import { ETAPAS_FLUJO_LABELS, ETAPAS_EJECUCION_LABELS } from '../../../shared/models/proyecto-flujo.model';
 import { TallerService } from '../../../services/taller.service';
 import {
   Contacto,
@@ -27,6 +29,7 @@ import { ContactoFormComponent } from '../contacto-form/contacto-form.component'
 export class ContactoDetalleComponent {
   private contactoService = inject(ContactoService);
   private clienteService  = inject(ClienteService);
+  private proyectoService = inject(ProyectoFlujoService);
   private tallerService   = inject(TallerService);
   private route           = inject(ActivatedRoute);
   private router          = inject(Router);
@@ -67,6 +70,25 @@ export class ContactoDetalleComponent {
     ),
     { initialValue: [] }
   );
+
+  // Proyectos del tablero de este contacto
+  readonly ETAPAS_FLUJO_LABELS = ETAPAS_FLUJO_LABELS;
+  readonly ETAPAS_EJECUCION_LABELS = ETAPAS_EJECUCION_LABELS;
+  readonly linkedProyectos = toSignal(
+    this.route.paramMap.pipe(
+      switchMap(params => {
+        const id = params.get('id');
+        return id ? this.proyectoService.getProyectosByContacto(id) : of([]);
+      })
+    ),
+    { initialValue: [] }
+  );
+
+  /** Registros anteriores de `clientes` que aún no tienen proyecto (no migrados). */
+  readonly clientesSinProyecto = computed(() => {
+    const migrados = new Set(this.linkedProyectos().map(p => p.clienteIdLegacy ?? p.id));
+    return this.linkedClientes().filter(c => !migrados.has(c.id!));
+  });
 
   readonly hasAcademiaData = computed(() => {
     const a = this.contacto()?.academiaHistory;

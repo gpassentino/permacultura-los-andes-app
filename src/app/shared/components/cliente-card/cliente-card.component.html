@@ -1,87 +1,155 @@
-<div class="cliente-card card mb-2"
-     [class.recordatorio-vencido]="estadoRecordatorio() === 'vencido'"
-     [class.recordatorio-hoy]="estadoRecordatorio() === 'hoy'"
-     [class.recordatorio-pronto]="estadoRecordatorio() === 'pronto'">
-  <div class="card-body py-2 px-3">
+@if (proyecto(); as p) {
+  <!-- ══ Modo proyecto ══ -->
+  <div class="cliente-card proyecto-card card mb-2"
+       [class.proyecto-card--estancado]="estancado()"
+       [class.proyecto-card--ejecucion]="carril() === 'ejecucion'">
+    <div class="card-body py-2 px-3">
 
-    <!-- Row 1: Name + reminder badge -->
-    <div class="d-flex justify-content-between align-items-start mb-1">
-      <span class="fw-semibold text-dark lh-sm nombre-cliente">{{ cliente().nombre }}</span>
-
-      @if (mostrarBadge()) {
-        <span class="badge ms-2 flex-shrink-0 recordatorio-badge"
-              [class]="badgeClass()"
-              [title]="cliente().recordatorioMensaje || 'Recordatorio'">
-          {{ badgeIcon() }}
-        </span>
-      }
-    </div>
-
-    <!-- Row 2: Categoría badge + checklist progress -->
-    <div class="d-flex align-items-center gap-2 mb-1">
-      <span class="categoria-badge" [class]="categoriaBadgeClass()">
-        {{ cliente().categoria }}
-      </span>
-      @if (checklistProgress().total > 0) {
-        <span class="small text-muted">
-          {{ checklistProgress().done }}/{{ checklistProgress().total }} ✓
-        </span>
-      }
-    </div>
-
-    <!-- Row 2b: Next checklist items (up to 2) — empty when checklist is done or unset -->
-    @if (nextItems().length > 0) {
-      <div class="checklist-next small text-muted mb-1">
-        @for (item of nextItems(); track $index) {
-          <div class="checklist-next-item">
-            <span class="checklist-next-marker">▸</span>
-            {{ item.texto }}
+      <!-- Nombre del proyecto + código -->
+      <div class="d-flex justify-content-between align-items-start gap-2">
+        <div class="min-w-0">
+          <div class="fw-semibold text-dark lh-sm text-truncate">{{ p.nombreProyecto }}</div>
+          <div class="small text-muted text-truncate">
+            {{ p.contactoNombre || 'Sin contacto' }}
           </div>
-        }
+        </div>
+        <span class="codigo-proyecto flex-shrink-0">{{ p.codigo }}</span>
       </div>
-    }
 
-    <!-- Row 3: Municipio -->
-    @if (cliente().municipio) {
-      <div class="text-muted municipio mb-1">
-        <span class="me-1">📍</span>{{ cliente().municipio }}
-      </div>
-    }
-
-    <!-- Row 4: Days since contact + WhatsApp icon -->
-    <div class="d-flex justify-content-between align-items-center mt-1">
-      @if (diasDesdeContacto() !== null) {
-        <span class="small dias-contacto" [class]="diasContactoClass()">
-          {{ diasDesdeContacto() }}d sin contacto
-        </span>
-      } @else {
-        <span class="small text-muted">Sin fecha de contacto</span>
+      <!-- Servicios -->
+      @if (p.servicios.length) {
+        <div class="d-flex flex-wrap gap-1 mt-1">
+          @for (s of p.servicios; track s.id) {
+            <span class="servicio-tag">{{ s.nombre }}</span>
+          }
+        </div>
       }
 
-      <div class="d-flex align-items-center gap-2">
-        @if (cliente().contactoId) {
-          <a [routerLink]="['/contactos', cliente().contactoId]"
-             class="text-muted text-decoration-none"
-             aria-label="Ver en Contactos"
-             title="Ver en Contactos"
-             (click)="$event.stopPropagation()">
-            👤
-          </a>
-        }
-        @if (cliente().whatsapp) {
-          <a [href]="whatsappUrl()"
-             target="_blank"
-             rel="noopener noreferrer"
-             class="whatsapp-link text-decoration-none"
-             aria-label="Abrir WhatsApp"
-             (click)="$event.stopPropagation()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#25D366">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-            </svg>
-          </a>
+      <!-- Próximo paso -->
+      @if (p.proximoPaso?.texto) {
+        <div class="small mt-1 text-truncate" [class.text-danger]="pasoVencido()" [class.fw-semibold]="pasoVencido()">
+          ▸ {{ p.proximoPaso!.texto }}
+          @if (p.proximoPaso!.fecha) {
+            <span>· {{ p.proximoPaso!.fecha | date:'d MMM' }}</span>
+          }
+        </div>
+      }
+
+      <!-- Pie: días en etapa · documentos · mover -->
+      <div class="d-flex align-items-center justify-content-between gap-2 mt-2">
+        <div class="d-flex align-items-center gap-2 small text-muted flex-wrap">
+          @if (diasEtapa() !== null) {
+            <span [class.text-danger]="estancado()" [class.fw-semibold]="estancado()"
+                  [title]="'Días en ' + etapaLabel()">
+              {{ diasEtapa() }} d
+            </span>
+          }
+          @for (i of iconosDocumento(); track i.tipo) {
+            <span [title]="i.label" [attr.aria-label]="i.label">{{ i.icono }}</span>
+          }
+          @if (otroCarril()) {
+            <span class="carril-link" title="El proyecto también está en el otro carril">↔ {{ otroCarril() }}</span>
+          }
+          @if (porRevisar()) {
+            <span class="badge text-bg-warning">Revisar</span>
+          }
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 flex-shrink-0"
+                (click)="onMover($event)" aria-label="Mover a otra etapa">
+          Mover a…
+        </button>
+      </div>
+
+      <ng-content />
+    </div>
+  </div>
+} @else if (cliente(); as c) {
+  <!-- ══ Modo cliente (registro anterior) ══ -->
+  <div class="cliente-card card mb-2"
+       [class.recordatorio-vencido]="estadoRecordatorio() === 'vencido'"
+       [class.recordatorio-hoy]="estadoRecordatorio() === 'hoy'"
+       [class.recordatorio-pronto]="estadoRecordatorio() === 'pronto'">
+    <div class="card-body py-2 px-3">
+
+      <!-- Row 1: Name + reminder badge -->
+      <div class="d-flex justify-content-between align-items-start mb-1">
+        <span class="fw-semibold text-dark lh-sm nombre-cliente">{{ c.nombre }}</span>
+
+        @if (mostrarBadge()) {
+          <span class="badge ms-2 flex-shrink-0 recordatorio-badge"
+                [class]="badgeClass()"
+                [title]="c.recordatorioMensaje || 'Recordatorio'">
+            {{ badgeIcon() }}
+          </span>
         }
       </div>
-    </div>
 
+      <!-- Row 2: Categoría badge + checklist progress -->
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <span class="categoria-badge" [class]="categoriaBadgeClass()">
+          {{ c.categoria }}
+        </span>
+        @if (checklistProgress().total > 0) {
+          <span class="small text-muted">
+            {{ checklistProgress().done }}/{{ checklistProgress().total }} ✓
+          </span>
+        }
+      </div>
+
+      <!-- Row 2b: Next checklist items (up to 2) — empty when checklist is done or unset -->
+      @if (nextItems().length > 0) {
+        <div class="checklist-next small text-muted mb-1">
+          @for (item of nextItems(); track $index) {
+            <div class="checklist-next-item">
+              <span class="checklist-next-marker">▸</span>
+              {{ item.texto }}
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Row 3: Municipio -->
+      @if (c.municipio) {
+        <div class="text-muted municipio mb-1">
+          <span class="me-1">📍</span>{{ c.municipio }}
+        </div>
+      }
+
+      <!-- Row 4: Days since contact + WhatsApp icon -->
+      <div class="d-flex justify-content-between align-items-center mt-1">
+        @if (diasDesdeContacto() !== null) {
+          <span class="small dias-contacto" [class]="diasContactoClass()">
+            {{ diasDesdeContacto() }}d sin contacto
+          </span>
+        } @else {
+          <span class="small text-muted">Sin fecha de contacto</span>
+        }
+
+        <div class="d-flex align-items-center gap-2">
+          @if (c.contactoId) {
+            <a [routerLink]="['/contactos', c.contactoId]"
+               class="text-muted text-decoration-none"
+               aria-label="Ver en Contactos"
+               title="Ver en Contactos"
+               (click)="$event.stopPropagation()">
+              👤
+            </a>
+          }
+          @if (c.whatsapp) {
+            <a [href]="whatsappUrl()"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="whatsapp-link text-decoration-none"
+               aria-label="Abrir WhatsApp"
+               (click)="$event.stopPropagation()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#25D366">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+              </svg>
+            </a>
+          }
+        </div>
+      </div>
+
+    </div>
   </div>
-</div>
+}

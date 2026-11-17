@@ -1,7 +1,21 @@
-<div class="stat-card stat-card--{{ color() }}">
-  @if (icon()) {
-    <div class="stat-card__icon">{{ icon() }}</div>
-  }
-  <div class="stat-card__value">{{ value() }}</div>
-  <div class="stat-card__label">{{ label() }}</div>
-</div>
+@if (clickable()) {
+  <button type="button"
+          class="stat-card stat-card--{{ color() }} stat-card--clickable"
+          [class.stat-card--active]="active()"
+          [attr.aria-pressed]="active()"
+          (click)="pulsar.emit()">
+    @if (icon()) {
+      <span class="stat-card__icon">{{ icon() }}</span>
+    }
+    <span class="stat-card__value">{{ value() }}</span>
+    <span class="stat-card__label">{{ label() }}</span>
+  </button>
+} @else {
+  <div class="stat-card stat-card--{{ color() }}">
+    @if (icon()) {
+      <div class="stat-card__icon">{{ icon() }}</div>
+    }
+    <div class="stat-card__value">{{ value() }}</div>
+    <div class="stat-card__label">{{ label() }}</div>
+  </div>
+}

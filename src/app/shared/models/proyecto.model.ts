@@ -14,7 +14,47 @@ export interface Pago {
   fecha: Date | null;
   metodo: MetodoPago;
   notas: string;
+  /** Hito de cobro que este pago salda (si se registró desde un hito). */
+  hitoId?: string;
 }
+
+// ── Hitos de cobro (pagos esperados) ────────────────────────────
+// Viven en el documento financiero (`proyectos`), con las mismas reglas de
+// acceso de Contabilidad. El dinero recibido sigue registrándose en `pagos[]`:
+// marcar un hito como pagado crea el Pago real y lo enlaza con `hitoId`.
+export const ESTADOS_HITO = ['pendiente', 'cobrado', 'pagado'] as const;
+export type EstadoHito = typeof ESTADOS_HITO[number];
+/** `vencido` no se guarda: se calcula a partir de `fechaEsperada`. */
+export type EstadoHitoVisible = EstadoHito | 'vencido';
+
+export const ESTADOS_HITO_LABELS: Record<EstadoHitoVisible, string> = {
+  pendiente: 'Pendiente',
+  cobrado:   'Cuenta de cobro enviada',
+  pagado:    'Pagado',
+  vencido:   'Vencido',
+};
+
+export type CarrilCobro = 'diseno' | 'ejecucion';
+
+export interface HitoCobro {
+  id: string;
+  carril: CarrilCobro;
+  concepto: string;        // "Firma", "Entrega preliminar", "Visita 2"…
+  monto: number;
+  fechaEsperada: Date | null;
+  estado: EstadoHito;
+  pagoId?: string;         // Pago que lo saldó
+  orden: number;
+}
+
+export const PLANTILLAS_PLAN_PAGO = ['50_50', '40_40_20', 'por_visita'] as const;
+export type PlantillaPlanPago = typeof PLANTILLAS_PLAN_PAGO[number];
+
+export const PLANTILLAS_PLAN_PAGO_LABELS: Record<PlantillaPlanPago, string> = {
+  '50_50':      '50/50 · firma y entrega',
+  '40_40_20':   '40/40/20 · firma, entrega preliminar y entrega final',
+  'por_visita': 'Por visita',
+};
 
 // ── Expenses (Gasto) ────────────────────────────────────────────
 export const TIPOS_GASTO = [
@@ -151,6 +191,8 @@ export interface Proyecto {
   pagos: Pago[];
   gastos: Gasto[];
   resumen: ResumenFinanciero;
+  /** Pagos esperados. Ausente en los registros anteriores al flujo. */
+  hitosCobro?: HitoCobro[];
   creadoEn: Date;
   actualizadoEn: Date;
 }

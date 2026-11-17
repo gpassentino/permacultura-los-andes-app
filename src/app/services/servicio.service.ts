@@ -35,7 +35,7 @@ const SEED_SERVICIOS: Omit<Servicio, 'id' | 'creadoEn' | 'actualizadoEn' | 'crea
   },
   {
     tipo: 'informe_vision',
-    nombre: 'Informe de Visión / Conceptual',
+    nombre: 'Diseño conceptual',
     descripcion: 'Entregable maestro que reciben todos los clientes después de la asesoría inicial. Define la visión integral del proyecto y la hoja de ruta por fases.',
     queIncluye: '• Análisis técnico: hidrología, zonificación, estratificación (bosque comestible), suelos, interconexión de ideas\n• Hoja de ruta: definición de fases y etapas de desarrollo\n• Documento entregable que sirve como base para siguientes etapas',
     queHaceElNegocio: 'Sintetizar hallazgos de la asesoría. Estructurar narrativa del proyecto. Definir orden lógico de fases para ejecución escalonada.',

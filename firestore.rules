@@ -41,6 +41,41 @@ service cloud.firestore {
       allow read, write: if isAuthorized();
     }
 
+    // ── Flujo de proyectos (tablero) ─────────────────────────────
+    // Visible para todos los usuarios autorizados. Nunca guarda datos
+    // financieros: esos viven en `proyectos` (solo Contabilidad).
+    function proyectoFlujoValido(d) {
+      return d.contactoId is string
+          && d.codigo is string && d.codigo.matches('^PLA-[A-Z]{3}$')
+          && d.nombreProyecto is string && d.nombreProyecto.size() > 0
+          && d.etapaFlujo in ['contacto', 'propuesta', 'contrato', 'diseno', 'revision',
+                              'entregado', 'portafolio', 'archivado', 'no_se_dio']
+          && (d.get('etapaEjecucion', null) == null
+              || d.etapaEjecucion in ['por_programar', 'en_obra', 'mantenimiento', 'ejecucion_cerrada'])
+          && d.servicioIds is list
+          && d.documentos is list
+          && d.historial is list
+          && (d.etapaFlujo != 'no_se_dio'
+              || (d.get('motivoCierre', '') is string && d.get('motivoCierre', '').size() > 0))
+          && !d.keys().hasAny(['presupuesto', 'pagos', 'gastos', 'hitosCobro', 'resumen', 'estadoPago']);
+    }
+
+    match /proyectosFlujo/{proyectoId} {
+      allow read: if isAuthorized();
+      allow create, update: if isAuthorized() && proyectoFlujoValido(request.resource.data);
+      allow delete: if isAuthorized();
+    }
+
+    // Reserva de códigos PLA-XXX únicos: el id del documento es el código.
+    match /codigosProyecto/{codigo} {
+      allow read: if isAuthorized();
+      allow create: if isAuthorized()
+                    && codigo.matches('^PLA-[A-Z]{3}$')
+                    && request.resource.data.proyectoId is string;
+      allow update: if false;
+      allow delete: if isAuthorized();
+    }
+
     function isContabilidad() {
       return request.auth != null &&
              request.auth.token.email in ['gpassentino@gmail.com', 'anjuarci@gmail.com'];

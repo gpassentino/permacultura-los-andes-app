@@ -205,6 +205,7 @@ describe('TallerService', () => {
     function oldPart(overrides: Partial<Participante> = {}): Participante {
       return {
         id: 'p1',
+        contactoId: 'c1',
         nombreCompleto: 'Ana',
         whatsapp: '',
         email: '',
@@ -258,6 +259,7 @@ describe('TallerService', () => {
 
       await service.deleteParticipante('t1', {
         id: 'p1',
+        contactoId: 'c1',
         nombreCompleto: 'Ana',
         whatsapp: '',
         email: '',
@@ -283,6 +285,7 @@ describe('TallerService', () => {
 
       await service.deleteParticipante('t1', {
         id: 'p1',
+        contactoId: 'c1',
         nombreCompleto: 'Ana',
         whatsapp: '',
         email: '',

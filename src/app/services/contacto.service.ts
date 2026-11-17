@@ -16,8 +16,8 @@ import { normalizePhone } from '../shared/utils/phone';
  * the user and prompt them to detach the links first.
  */
 export class ContactoLinkedError extends Error {
-  constructor(public counts: { clientes: number; participantes: number }) {
-    super(`Contacto tiene ${counts.clientes} tarjeta(s) y ${counts.participantes} participante(s) vinculado(s)`);
+  constructor(public counts: { clientes: number; participantes: number; proyectos?: number }) {
+    super(`Contacto tiene ${counts.proyectos ?? 0} proyecto(s), ${counts.clientes} tarjeta(s) y ${counts.participantes} participante(s) vinculado(s)`);
     this.name = 'ContactoLinkedError';
   }
 }
@@ -102,7 +102,7 @@ export class ContactoService {
    * Counts linked Cliente (Kanban) cards and Participante (Academia) records
    * for this contact. Used to block deletion when a contact is in use.
    */
-  async countLinkedRecords(id: string): Promise<{ clientes: number; participantes: number }> {
+  async countLinkedRecords(id: string): Promise<{ clientes: number; participantes: number; proyectos: number }> {
     return await runInInjectionContext(this.injector, async () => {
       const clientesQ = query(
         collection(this.firestore, 'clientes'),
@@ -112,11 +112,16 @@ export class ContactoService {
         collectionGroup(this.firestore, 'participantes'),
         where('contactoId', '==', id)
       );
-      const [clientesSnap, partsSnap] = await Promise.all([
+      const proyectosQ = query(
+        collection(this.firestore, 'proyectosFlujo'),
+        where('contactoId', '==', id)
+      );
+      const [clientesSnap, partsSnap, proyectosSnap] = await Promise.all([
         getDocs(clientesQ),
-        getDocs(partsQ)
+        getDocs(partsQ),
+        getDocs(proyectosQ)
       ]);
-      return { clientes: clientesSnap.size, participantes: partsSnap.size };
+      return { clientes: clientesSnap.size, participantes: partsSnap.size, proyectos: proyectosSnap.size };
     });
   }
 
@@ -127,7 +132,7 @@ export class ContactoService {
    */
   async deleteContacto(id: string): Promise<void> {
     const counts = await this.countLinkedRecords(id);
-    if (counts.clientes > 0 || counts.participantes > 0) {
+    if (counts.clientes > 0 || counts.participantes > 0 || counts.proyectos > 0) {
       throw new ContactoLinkedError(counts);
     }
     await runInInjectionContext(this.injector, () =>

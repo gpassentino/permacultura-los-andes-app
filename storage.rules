@@ -9,5 +9,12 @@ service firebase.storage {
     match /portafolio/{proyectoId}/{filename=**} {
       allow read, write: if isAuthorized();
     }
+
+    // Escaneos firmados y otros archivos de un proyecto del flujo (máx. 20 MB)
+    match /proyectosFlujo/{proyectoId}/documentos/{filename=**} {
+      allow read: if isAuthorized();
+      allow write: if isAuthorized()
+                   && (request.resource == null || request.resource.size < 20 * 1024 * 1024);
+    }
   }
 }

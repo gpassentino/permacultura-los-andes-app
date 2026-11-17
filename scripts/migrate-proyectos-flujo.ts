@@ -136,7 +136,8 @@ async function main(): Promise<void> {
   }
   const nombreServicio = (id: string): string => {
     const tipo = Object.entries(idPorTipo).find(([, v]) => v === id)?.[0];
-    return existentes.find(e => e.id === id)?.nombre
+    return plan.renombrar.find(r => r.id === id)?.a
+      ?? existentes.find(e => e.id === id)?.nombre
       ?? plan.crear.find(c => c.tipo === tipo)?.nombre
       ?? id;
   };

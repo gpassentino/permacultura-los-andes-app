@@ -60,3 +60,8 @@ todo.md
 
 # Respaldos locales de Firestore (contienen datos personales) — NUNCA commitear
 respaldos/
+
+# Logs de los emuladores de Firebase
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
